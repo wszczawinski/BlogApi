@@ -10,8 +10,8 @@ services:
       MYSQL_PASSWORD: mypass
     ports:
       - "3306:3306"
-  #    volumes:
-  #      - mysql_data:/var/lib/mysql
+    volumes:
+      - ./data/db:/var/lib/mysql
 
   adminer:
     image: adminer:latest
