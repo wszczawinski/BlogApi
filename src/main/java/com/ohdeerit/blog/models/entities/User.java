@@ -1,4 +1,4 @@
-package com.ohdeerit.blog.domain.entities;
+package com.ohdeerit.blog.models.entities;
 
 import lombok.*;
 import jakarta.persistence.*;

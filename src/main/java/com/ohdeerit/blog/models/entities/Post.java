@@ -1,6 +1,6 @@
-package com.ohdeerit.blog.domain.entities;
+package com.ohdeerit.blog.models.entities;
 
-import com.ohdeerit.blog.domain.PostStatus;
+import com.ohdeerit.blog.models.enums.PostStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
