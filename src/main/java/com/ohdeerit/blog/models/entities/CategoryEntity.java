@@ -3,9 +3,9 @@ package com.ohdeerit.blog.models.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -14,8 +14,8 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "tags")
-public class Tag {
+@Table(name = "categories")
+public class CategoryEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,14 +24,14 @@ public class Tag {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @ManyToMany(mappedBy = "tags")
-    private Set<Post> posts = new HashSet<>();
+    @OneToMany(mappedBy = "category")
+    private List<PostEntity> posts = new ArrayList<>();
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        Tag tag = (Tag) o;
-        return Objects.equals(id, tag.id) && Objects.equals(name, tag.name);
+        CategoryEntity categoryEntity = (CategoryEntity) o;
+        return Objects.equals(id, categoryEntity.id) && Objects.equals(name, categoryEntity.name);
     }
 
     @Override

@@ -1,7 +1,7 @@
 package com.ohdeerit.blog.services;
 
 import com.ohdeerit.blog.repositories.CategoryRepository;
-import com.ohdeerit.blog.models.entities.Category;
+import com.ohdeerit.blog.models.entities.CategoryEntity;
 import com.ohdeerit.blog.models.dtos.CategoryDto;
 import com.ohdeerit.blog.mappers.CategoryMapper;
 import org.springframework.stereotype.Service;
@@ -19,26 +19,26 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     public List<CategoryDto> getCategories() {
-        final List<Category> categories = categoryRepository.findAllWithPostCount();
+        final List<CategoryEntity> categories = categoryRepository.findAllWithPostCount();
 
         return categoryMapper.map(categories);
     }
 
     public CategoryDto createCategory(CategoryDto categoryDto) {
-        final Category category = categoryMapper.map(categoryDto);
-        final String name = category.getName();
+        final CategoryEntity categoryEntity = categoryMapper.map(categoryDto);
+        final String name = categoryEntity.getName();
 
         if (categoryRepository.existsByNameIgnoreCase(name)) {
             throw new IllegalArgumentException("Category with name " + name + " already exists");
         }
 
-        final Category savedCategory = categoryRepository.save(category);
+        final CategoryEntity savedCategoryEntity = categoryRepository.save(categoryEntity);
 
-        return categoryMapper.map(savedCategory);
+        return categoryMapper.map(savedCategoryEntity);
     }
 
     public void deleteCategory(UUID id) {
-        Optional<Category> category = categoryRepository.findById(id);
+        Optional<CategoryEntity> category = categoryRepository.findById(id);
         if (category.isPresent()) {
             if (!category.get().getPosts().isEmpty()) {
                 throw new IllegalStateException("Category has posts and cannot be deleted");

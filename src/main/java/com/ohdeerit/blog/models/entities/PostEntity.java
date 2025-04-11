@@ -14,7 +14,7 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "posts")
-public class Post {
+public class PostEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -35,19 +35,19 @@ public class Post {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
-    private User author;
+    private UserEntity author;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
-    private Category category;
+    private CategoryEntity category;
 
     @ManyToMany
     @JoinTable(
             name = "post_tags",
-            joinColumns = @JoinColumn(name="post_id"),
+            joinColumns = @JoinColumn(name = "post_id"),
             inverseJoinColumns = @JoinColumn(name = "tag_id")
     )
-    private Set<Tag> tags = new HashSet<>();
+    private Set<TagEntity> tags = new HashSet<>();
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -58,8 +58,14 @@ public class Post {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        Post post = (Post) o;
-        return Objects.equals(id, post.id) && Objects.equals(title, post.title) && Objects.equals(content, post.content) && status == post.status && Objects.equals(readingTime, post.readingTime) && Objects.equals(createdAt, post.createdAt) && Objects.equals(updatedAt, post.updatedAt);
+        PostEntity postEntity = (PostEntity) o;
+        return Objects.equals(id, postEntity.id)
+                && Objects.equals(title, postEntity.title)
+                && Objects.equals(content, postEntity.content)
+                && status == postEntity.status
+                && Objects.equals(readingTime, postEntity.readingTime)
+                && Objects.equals(createdAt, postEntity.createdAt)
+                && Objects.equals(updatedAt, postEntity.updatedAt);
     }
 
     @Override
