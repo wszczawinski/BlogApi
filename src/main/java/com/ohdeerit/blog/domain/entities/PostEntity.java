@@ -1,26 +1,29 @@
-package com.ohdeerit.blog.models.entities;
+package com.ohdeerit.blog.domain.entities;
 
-import com.ohdeerit.blog.models.enums.PostStatus;
+import com.ohdeerit.blog.domain.enums.PostStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.Set;
 
 @Entity
-@Getter
+@Table(name = "posts")
 @Setter
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "posts")
 public class PostEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -58,14 +61,14 @@ public class PostEntity {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        PostEntity postEntity = (PostEntity) o;
-        return Objects.equals(id, postEntity.id)
-                && Objects.equals(title, postEntity.title)
-                && Objects.equals(content, postEntity.content)
-                && status == postEntity.status
-                && Objects.equals(readingTime, postEntity.readingTime)
-                && Objects.equals(createdAt, postEntity.createdAt)
-                && Objects.equals(updatedAt, postEntity.updatedAt);
+        PostEntity that = (PostEntity) o;
+        return Objects.equals(id, that.id)
+                && Objects.equals(title, that.title)
+                && Objects.equals(content, that.content)
+                && status == that.status
+                && Objects.equals(readingTime, that.readingTime)
+                && Objects.equals(createdAt, that.createdAt)
+                && Objects.equals(updatedAt, that.updatedAt);
     }
 
     @Override
@@ -75,7 +78,8 @@ public class PostEntity {
 
     @PrePersist
     protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
+        final LocalDateTime now = LocalDateTime.now();
+
         this.createdAt = now;
         this.updatedAt = now;
     }
@@ -84,5 +88,4 @@ public class PostEntity {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-
 }

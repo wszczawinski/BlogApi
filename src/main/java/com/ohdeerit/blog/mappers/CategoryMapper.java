@@ -1,27 +1,20 @@
 package com.ohdeerit.blog.mappers;
 
-import com.ohdeerit.blog.models.controllers.v1.category.CreateCategoryRequest;
-import com.ohdeerit.blog.models.entities.CategoryEntity;
-import com.ohdeerit.blog.models.entities.PostEntity;
-import com.ohdeerit.blog.models.enums.PostStatus;
-import com.ohdeerit.blog.models.dtos.CategoryDto;
-import org.mapstruct.ReportingPolicy;
-import jakarta.annotation.Nullable;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
+import com.ohdeerit.blog.domain.dtos.CreateCategoryRequest;
+import com.ohdeerit.blog.domain.entities.CategoryEntity;
+import com.ohdeerit.blog.domain.entities.PostEntity;
+import com.ohdeerit.blog.domain.dtos.CategoryDto;
+import com.ohdeerit.blog.domain.enums.PostStatus;
+import org.mapstruct.*;
 
-import java.util.List;
 import java.util.Objects;
+import java.util.List;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface CategoryMapper {
 
     @Mapping(target = "postCount", source = "posts", qualifiedByName = "calculatePostCount")
-    CategoryDto map(CategoryEntity categoryEntity);
-
-    @Nullable
-    List<CategoryDto> map(List<CategoryEntity> categories);
+    CategoryDto map(CategoryEntity category);
 
     @Named("calculatePostCount")
     default long calculatePostCount(List<PostEntity> postEntities) {
@@ -34,7 +27,5 @@ public interface CategoryMapper {
                 .count();
     }
 
-    CategoryDto map(CreateCategoryRequest categoryRequest);
-
-    CategoryEntity map(CategoryDto categoryDto);
+    CategoryEntity map(CreateCategoryRequest category);
 }

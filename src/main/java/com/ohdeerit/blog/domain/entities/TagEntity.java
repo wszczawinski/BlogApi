@@ -1,4 +1,4 @@
-package com.ohdeerit.blog.models.entities;
+package com.ohdeerit.blog.domain.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -9,12 +9,12 @@ import java.util.UUID;
 import java.util.Set;
 
 @Entity
-@Getter
+@Table(name = "tags")
 @Setter
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "tags")
 public class TagEntity {
 
     @Id
@@ -31,12 +31,12 @@ public class TagEntity {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         TagEntity tagEntity = (TagEntity) o;
-        return Objects.equals(id, tagEntity.id) && Objects.equals(name, tagEntity.name);
+        return Objects.equals(id, tagEntity.id)
+                && Objects.equals(name, tagEntity.name);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id, name);
     }
-
 }

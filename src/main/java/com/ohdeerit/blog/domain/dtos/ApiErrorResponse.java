@@ -1,9 +1,6 @@
-package com.ohdeerit.blog.models.controllers.v1.error;
+package com.ohdeerit.blog.domain.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
