@@ -2,6 +2,7 @@ package com.ohdeerit.blog.services.impl;
 
 import com.ohdeerit.blog.repositories.CategoryRepository;
 import com.ohdeerit.blog.domain.entities.CategoryEntity;
+import jakarta.persistence.EntityNotFoundException;
 import com.ohdeerit.blog.services.CategoryService;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
@@ -20,6 +21,12 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryEntity> getCategories() {
         return categoryRepository.findAllWithPostCount();
+    }
+
+    @Override
+    public CategoryEntity getCategory(UUID id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Category with id " + id + " does not exist"));
     }
 
     @Override

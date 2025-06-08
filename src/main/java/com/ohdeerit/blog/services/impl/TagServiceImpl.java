@@ -2,6 +2,7 @@ package com.ohdeerit.blog.services.impl;
 
 import com.ohdeerit.blog.repositories.TagRepository;
 import com.ohdeerit.blog.domain.entities.TagEntity;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import com.ohdeerit.blog.services.TagService;
 import jakarta.transaction.Transactional;
@@ -19,6 +20,23 @@ public class TagServiceImpl implements TagService {
     @Override
     public List<TagEntity> getTags() {
         return tagRepository.findAllWithPostCount();
+    }
+
+    @Override
+    public List<TagEntity> getTags(Set<UUID> ids) {
+        List<TagEntity> tags = tagRepository.findAllById(ids);
+
+        if (tags.size() != ids.size()) {
+            throw new EntityNotFoundException("Some of the provided ids do not exist");
+        }
+
+        return tags;
+    }
+
+    @Override
+    public TagEntity getTag(UUID id) {
+        return tagRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No tag found with id: " + id));
     }
 
     @Override
