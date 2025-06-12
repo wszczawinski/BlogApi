@@ -3,7 +3,7 @@ package com.ohdeerit.blog.security;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.GrantedAuthority;
-import com.ohdeerit.blog.domain.entities.UserEntity;
+import com.ohdeerit.blog.models.entities.UserEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.Getter;
 

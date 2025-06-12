@@ -1,9 +1,9 @@
 package com.ohdeerit.blog.services.impl;
 
 import com.ohdeerit.blog.repositories.UserRepository;
-import com.ohdeerit.blog.domain.entities.UserEntity;
+import com.ohdeerit.blog.models.entities.UserEntity;
 import jakarta.persistence.EntityNotFoundException;
-import com.ohdeerit.blog.services.UserService;
+import com.ohdeerit.blog.services.interfaces.UserService;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 

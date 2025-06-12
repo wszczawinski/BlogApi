@@ -1,10 +1,10 @@
 package com.ohdeerit.blog.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.ohdeerit.blog.domain.entities.CategoryEntity;
-import com.ohdeerit.blog.domain.entities.PostEntity;
-import com.ohdeerit.blog.domain.entities.TagEntity;
-import com.ohdeerit.blog.domain.enums.PostStatus;
+import com.ohdeerit.blog.models.entities.CategoryEntity;
+import com.ohdeerit.blog.models.entities.PostEntity;
+import com.ohdeerit.blog.models.entities.TagEntity;
+import com.ohdeerit.blog.models.enums.PostStatus;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

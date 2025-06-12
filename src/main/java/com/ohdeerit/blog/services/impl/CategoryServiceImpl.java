@@ -1,9 +1,12 @@
 package com.ohdeerit.blog.services.impl;
 
 import com.ohdeerit.blog.repositories.CategoryRepository;
-import com.ohdeerit.blog.domain.entities.CategoryEntity;
+import com.ohdeerit.blog.models.entities.CategoryEntity;
+import com.ohdeerit.blog.services.mappers.CategoryServiceMapper;
+import com.ohdeerit.blog.models.dtos.CreateCategoryDto;
 import jakarta.persistence.EntityNotFoundException;
-import com.ohdeerit.blog.services.CategoryService;
+import com.ohdeerit.blog.services.interfaces.CategoryService;
+import com.ohdeerit.blog.models.dtos.CategoryDto;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -18,9 +21,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    private final CategoryServiceMapper categoryMapper;
+
     @Override
-    public List<CategoryEntity> getCategories() {
-        return categoryRepository.findAllWithPostCount();
+    public List<CategoryDto> getCategories() {
+        List<CategoryEntity> categoryEntities = categoryRepository.findAllWithPostCount();
+
+        return categoryEntities.stream().map(categoryMapper::map).toList();
     }
 
     @Override
@@ -31,15 +38,17 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
-    public CategoryEntity createCategory(CategoryEntity category) {
-
+    public CategoryDto createCategory(CreateCategoryDto categoryRequest) {
+        final CategoryEntity category = categoryMapper.map(categoryRequest);
         final String name = category.getName();
 
         if (categoryRepository.existsByNameIgnoreCase(name)) {
             throw new IllegalArgumentException("Category with name " + name + " already exists");
         }
 
-        return categoryRepository.save(category);
+        final CategoryEntity createdCategory = categoryRepository.save(category);
+
+        return categoryMapper.map(createdCategory);
     }
 
     @Override

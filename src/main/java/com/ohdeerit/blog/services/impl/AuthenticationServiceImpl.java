@@ -5,7 +5,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.beans.factory.annotation.Value;
-import com.ohdeerit.blog.services.AuthenticationService;
+import com.ohdeerit.blog.services.interfaces.AuthenticationService;
 import org.springframework.stereotype.Service;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;

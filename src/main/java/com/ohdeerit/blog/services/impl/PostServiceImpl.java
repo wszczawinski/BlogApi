@@ -1,19 +1,21 @@
 package com.ohdeerit.blog.services.impl;
 
 import org.springframework.transaction.annotation.Transactional;
-import com.ohdeerit.blog.domain.entities.CategoryEntity;
+import com.ohdeerit.blog.models.entities.CategoryEntity;
 import com.ohdeerit.blog.repositories.PostRepository;
-import com.ohdeerit.blog.domain.entities.UserEntity;
-import com.ohdeerit.blog.domain.entities.PostEntity;
-import com.ohdeerit.blog.domain.dtos.CreatePostDto;
+import com.ohdeerit.blog.models.entities.UserEntity;
+import com.ohdeerit.blog.models.entities.PostEntity;
+import com.ohdeerit.blog.models.dtos.CreatePostDto;
 import jakarta.persistence.EntityNotFoundException;
-import com.ohdeerit.blog.domain.entities.TagEntity;
-import com.ohdeerit.blog.services.CategoryService;
-import com.ohdeerit.blog.domain.enums.PostStatus;
-import com.ohdeerit.blog.services.UserService;
+import com.ohdeerit.blog.services.mappers.PostServiceMapper;
+import com.ohdeerit.blog.models.entities.TagEntity;
+import com.ohdeerit.blog.services.interfaces.CategoryService;
+import com.ohdeerit.blog.models.enums.PostStatus;
+import com.ohdeerit.blog.services.interfaces.UserService;
 import org.springframework.stereotype.Service;
-import com.ohdeerit.blog.services.PostService;
-import com.ohdeerit.blog.services.TagService;
+import com.ohdeerit.blog.services.interfaces.PostService;
+import com.ohdeerit.blog.models.dtos.PostDto;
+import com.ohdeerit.blog.services.interfaces.TagService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashSet;
@@ -30,61 +32,65 @@ public class PostServiceImpl implements PostService {
     private final UserService userService;
     private final TagService tagService;
 
+    private final PostServiceMapper postMapper;
+
     @Override
-    public PostEntity getPost(UUID id) {
-        return postRepository.findById(id)
+    public PostDto getPost(UUID id) {
+        final PostEntity postEntity = postRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No post found with id: " + id));
+
+        return postMapper.map(postEntity);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PostEntity> getPosts(UUID categoryId, UUID tagId) {
+    public List<PostDto> getPosts(UUID categoryId, UUID tagId) {
+        List<PostEntity> postEntities;
 
         if (categoryId != null && tagId != null) {
-
             CategoryEntity category = categoryService.getCategory(categoryId);
             TagEntity tag = tagService.getTag(tagId);
 
-            return postRepository.findAllByStatusAndCategoryAndTagsContaining(
+            postEntities = postRepository.findAllByStatusAndCategoryAndTagsContaining(
                     PostStatus.PUBLISHED,
                     category,
                     tag
             );
-        }
-
-        if (categoryId != null) {
+        } else if (categoryId != null) {
             CategoryEntity category = categoryService.getCategory(categoryId);
 
-            return postRepository.findAllByStatusAndCategory(
+            postEntities = postRepository.findAllByStatusAndCategory(
                     PostStatus.PUBLISHED,
                     category
             );
-        }
-
-        if (tagId != null) {
+        }else if (tagId != null) {
             TagEntity tag = tagService.getTag(tagId);
 
-            return postRepository.findAllByStatusAndTagsContaining(
+            postEntities = postRepository.findAllByStatusAndTagsContaining(
                     PostStatus.PUBLISHED,
                     tag
             );
+        } else {
+            postEntities = postRepository.findAllByStatus(PostStatus.PUBLISHED);
         }
 
-        return postRepository.findAllByStatus(PostStatus.PUBLISHED);
+        return postEntities.stream().map(postMapper::map).toList();
     }
 
     @Override
-    public List<PostEntity> getDraftPosts(UUID userId) {
-        return postRepository.findAllByAuthorIdAndStatus(userId, PostStatus.DRAFT);
+    public List<PostDto> getDraftPosts(UUID userId) {
+        final List<PostEntity> postEntities =  postRepository.findAllByAuthorIdAndStatus(userId, PostStatus.DRAFT);
+
+        return postEntities.stream().map(postMapper::map).toList();
     }
 
     @Override
-    public PostEntity createPost(CreatePostDto post, UUID userId) {
+    public PostDto createPost(CreatePostDto post, UUID userId) {
         final CategoryEntity categoryEntity = categoryService.getCategory(post.categoryId());
         final UserEntity userEntity = userService.getUser(userId);
         final List<TagEntity> tagEntities = tagService.getTags(post.tagIds());
-        PostEntity newPost = new PostEntity();
 
+        PostEntity newPost = new PostEntity();
         newPost.setCategory(categoryEntity);
         newPost.setAuthor(userEntity);
         newPost.setTitle(post.title());
@@ -93,10 +99,11 @@ public class PostServiceImpl implements PostService {
         newPost.setReadingTime(calculateReadTime(post.content()));
         newPost.setTags(new HashSet<>(tagEntities));
 
-        return postRepository.save(newPost);
+        final PostEntity savedPost = postRepository.save(newPost);
+        return postMapper.map(savedPost);
     }
 
-    private Integer calculateReadTime(String content) {
+    private static Integer calculateReadTime(String content) {
         if (content == null || content.isEmpty()) {
             return 0;
         }

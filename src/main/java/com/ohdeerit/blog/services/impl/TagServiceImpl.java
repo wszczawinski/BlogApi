@@ -1,10 +1,13 @@
 package com.ohdeerit.blog.services.impl;
 
 import com.ohdeerit.blog.repositories.TagRepository;
-import com.ohdeerit.blog.domain.entities.TagEntity;
+import com.ohdeerit.blog.models.entities.TagEntity;
 import jakarta.persistence.EntityNotFoundException;
+import com.ohdeerit.blog.models.dtos.CreateTagDto;
+import com.ohdeerit.blog.services.mappers.TagServiceMapper;
 import org.springframework.stereotype.Service;
-import com.ohdeerit.blog.services.TagService;
+import com.ohdeerit.blog.services.interfaces.TagService;
+import com.ohdeerit.blog.models.dtos.TagDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -17,9 +20,13 @@ public class TagServiceImpl implements TagService {
 
     private final TagRepository tagRepository;
 
+    private final TagServiceMapper tagMapper;
+
     @Override
-    public List<TagEntity> getTags() {
-        return tagRepository.findAllWithPostCount();
+    public List<TagDto> getTags() {
+        final List<TagEntity> tagEntities = tagRepository.findAllWithPostCount();
+
+        return tagEntities.stream().map(tagMapper::map).toList();
     }
 
     @Override
@@ -41,14 +48,16 @@ public class TagServiceImpl implements TagService {
 
     @Override
     @Transactional
-    public List<TagEntity> createTags(Set<String> names) {
-        final List<TagEntity> existingTags = tagRepository.findByNameIn(names);
+    public List<TagDto> createTags(Set<CreateTagDto> names) {
+        final List<String> tagNames = names.stream().map(CreateTagDto::name).toList();
+
+        final List<TagEntity> existingTags = tagRepository.findByNameIn(tagNames);
 
         final Set<String> existingTagNames = existingTags.stream()
                 .map(TagEntity::getName)
                 .collect(Collectors.toSet());
 
-        final List<TagEntity> tagsToCreate = names.stream()
+        final List<TagEntity> tagsToCreate = tagNames.stream()
                 .filter(name -> !existingTagNames.contains(name))
                 .map(name -> TagEntity.builder()
                         .name(name)
@@ -64,7 +73,7 @@ public class TagServiceImpl implements TagService {
 
         savedTags.addAll(existingTags);
 
-        return savedTags;
+        return savedTags.stream().map(tagMapper::map).toList();
     }
 
     @Override

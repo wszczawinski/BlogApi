@@ -10,13 +10,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.ohdeerit.blog.services.interfaces.AuthenticationService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.beans.factory.annotation.Value;
 import com.ohdeerit.blog.security.JwtAuthenticationFilter;
 import com.ohdeerit.blog.security.BlogUserDetailsService;
-import com.ohdeerit.blog.services.AuthenticationService;
 import org.springframework.web.cors.CorsConfiguration;
 import com.ohdeerit.blog.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
@@ -37,7 +37,9 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
-        return new BlogUserDetailsService(userRepository);
+        BlogUserDetailsService blogUserDetailsService = new BlogUserDetailsService(userRepository);
+
+        return blogUserDetailsService;
     }
 
     @Bean
@@ -46,14 +48,17 @@ public class SecurityConfig {
             JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/categories/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/categories/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/posts/drafts").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/posts/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/tags/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/tags/**").authenticated()
+
                         .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/posts/drafts").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/posts/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/tags/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/tags/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
