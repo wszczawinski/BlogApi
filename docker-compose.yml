@@ -2,7 +2,9 @@ services:
   db:
     image: mysql:8.0
     container_name: mysql-container
-    restart: always
+    networks:
+      - backend
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: mydb
@@ -15,10 +17,30 @@ services:
 
   adminer:
     image: adminer:latest
-    restart: always
+    container_name: adminer-container
+    networks:
+      - backend
+    restart: unless-stopped
     environment:
       ADMINER_DEFAULT_SERVER: db
     depends_on:
       - db
     ports:
-      - 8888:8080
+      - "8888:8080"
+
+# Optional Spring Boot application service configuration to containerize and run with Docker
+#  app:
+#    build: .
+#    container_name: blog-app
+#    networks:
+#      - backend
+#    depends_on:
+#      - db
+#    env_file:
+#      - .env
+#    ports:
+#      - "8080:8080"
+
+networks:
+  backend:
+    driver: bridge

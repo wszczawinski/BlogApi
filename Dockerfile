@@ -1,0 +1,35 @@
+# Build stage
+FROM eclipse-temurin:21-jdk-jammy as builder
+WORKDIR /app
+COPY mvnw .
+COPY .mvn .mvn
+COPY pom.xml .
+COPY src src
+RUN ./mvnw clean package -DskipTests
+
+# Runtime stage
+FROM eclipse-temurin:21-jre-jammy
+
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
+
+# Create volume for logs
+VOLUME /app/logs
+
+ENV SERVER_PORT=${SERVER_PORT} \
+    SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL} \
+    SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME} \
+    SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
+    SPRING_DATASOURCE_DRIVER_CLASS_NAME=${SPRING_DATASOURCE_DRIVER_CLASS_NAME} \
+    SPRING_JPA_SHOW_SQL=${SPRING_JPA_SHOW_SQL} \
+    SPRING_JPA_HIBERNATE_DDL_AUTO=${SPRING_JPA_HIBERNATE_DDL_AUTO} \
+    SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=${SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL} \
+    JWT_SECRET=${JWT_SECRET} \
+    CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS}
+
+EXPOSE 8080
+ENTRYPOINT ["java", \
+    "-XX:+UseContainerSupport", \
+    "-XX:MaxRAMPercentage=75", \
+    "-jar", \
+    "app.jar"]
