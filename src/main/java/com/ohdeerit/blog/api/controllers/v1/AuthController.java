@@ -37,6 +37,7 @@ public class AuthController {
                 .path("/")
                 .maxAge(SecurityConstants.SESSION_DURATION)
                 .sameSite("Strict")
+                .domain(null)
                 .build();
 
         final LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(SecurityConstants.SESSION_DURATION_SECONDS);
@@ -55,6 +56,7 @@ public class AuthController {
                 .path("/")
                 .maxAge(0)
                 .sameSite("Strict")
+                .domain(null)
                 .build();
 
         return ResponseEntity.ok()
