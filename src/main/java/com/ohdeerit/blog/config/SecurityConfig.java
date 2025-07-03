@@ -20,9 +20,11 @@ import com.ohdeerit.blog.security.BlogUserDetailsService;
 import org.springframework.web.cors.CorsConfiguration;
 import com.ohdeerit.blog.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpMethod;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 @Configuration
 public class SecurityConfig {
@@ -48,6 +50,10 @@ public class SecurityConfig {
             JwtAuthenticationFilter jwtAuthenticationFilter) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/api/v1/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/categories/**", "/api/v1/posts/**", "/api/v1/tags/**").permitAll()
+
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/categories/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/categories/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/posts/drafts").authenticated()
@@ -55,15 +61,23 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/tags/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/tags/**").authenticated()
 
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/posts/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/tags/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                            response.setContentType("application/json;charset=UTF-8");
+                            response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                        })
+                )
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.deny())
+                        .httpStrictTransportSecurity(hsts ->
+                                hsts.includeSubDomains(true).maxAgeInSeconds(31536000))
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()));
@@ -77,24 +91,14 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList(
-                "Content-Type",
-                "X-Requested-With",
                 "Accept",
                 "Origin",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers",
-                "Authorization",
-                "Cookie",
-                "Set-Cookie"
+                "Content-Type",
+                "X-Requested-With"
         ));
-        configuration.setExposedHeaders(Arrays.asList(
-                "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials",
-                "Set-Cookie"
-        ));
+        configuration.setExposedHeaders(Collections.emptyList());
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(SecurityConstants.SESSION_DURATION_SECONDS);
-
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

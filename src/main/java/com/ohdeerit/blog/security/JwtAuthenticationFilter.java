@@ -3,9 +3,9 @@ package com.ohdeerit.blog.security;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.core.context.SecurityContextHolder;
+import com.ohdeerit.blog.services.interfaces.AuthenticationService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
-import com.ohdeerit.blog.services.interfaces.AuthenticationService;
 import com.ohdeerit.blog.config.SecurityConstants;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,14 +35,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             authenticateRequest(request);
         } catch (ExpiredJwtException e) {
-            log.debug("JWT token has expired");
+            log.debug("JWT token expired");
             clearAuthenticationContext();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("{\"error\": \"Token expired\"}");
+            return;
         } catch (JwtException e) {
             log.debug("Invalid JWT token");
             clearAuthenticationContext();
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write("{\"error\": \"Invalid token\"}");
+            return;
         } catch (Exception e) {
-            log.error("Authentication error occurred", e);
+            log.error("Authentication error", e);
             clearAuthenticationContext();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write("{\"error\": \"Internal authentication error\"}");
+            return;
         }
 
         addSecurityHeaders(response);
@@ -96,5 +105,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.setHeader("X-XSS-Protection", "1; mode=block");
         response.setHeader("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate");
         response.setHeader("Pragma", "no-cache");
+        response.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+        response.setHeader("Referrer-Policy", "no-referrer-when-downgrade");
+        response.setHeader("Cross-Origin-Resource-Policy", "same-origin");
     }
 }

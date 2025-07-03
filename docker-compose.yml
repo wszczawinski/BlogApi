@@ -3,7 +3,7 @@ services:
     image: mysql:8.0
     container_name: mysql-container
     networks:
-      - backend
+      - blognet
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -19,7 +19,7 @@ services:
     image: adminer:latest
     container_name: adminer-container
     networks:
-      - backend
+      - blognet
     restart: unless-stopped
     environment:
       ADMINER_DEFAULT_SERVER: db
@@ -33,7 +33,7 @@ services:
 #    build: .
 #    container_name: blog-app
 #    networks:
-#      - backend
+#      - blognet
 #    depends_on:
 #      - db
 #    env_file:
@@ -42,5 +42,5 @@ services:
 #      - "8080:8080"
 
 networks:
-  backend:
+  blognet:
     driver: bridge
