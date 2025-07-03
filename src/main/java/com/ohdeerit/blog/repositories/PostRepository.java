@@ -7,6 +7,7 @@ import com.ohdeerit.blog.models.entities.TagEntity;
 import com.ohdeerit.blog.models.enums.PostStatus;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,5 +34,7 @@ public interface PostRepository extends JpaRepository<PostEntity, UUID> {
     );
 
     List<PostEntity> findAllByAuthorIdAndStatus(UUID authorId, PostStatus status);
+
+    Optional<PostEntity> findBySlug(String slug);
 
 }

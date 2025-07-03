@@ -14,4 +14,6 @@ public interface PostService {
     List<PostDto> getDraftPosts(UUID userId);
 
     PostDto createPost(CreatePostDto post, UUID userId);
+
+    PostDto getPostBySlug(String slug);
 }

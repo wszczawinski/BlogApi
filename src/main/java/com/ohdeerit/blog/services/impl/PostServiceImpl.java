@@ -1,21 +1,21 @@
 package com.ohdeerit.blog.services.impl;
 
 import org.springframework.transaction.annotation.Transactional;
+import com.ohdeerit.blog.services.interfaces.CategoryService;
+import com.ohdeerit.blog.services.mappers.PostServiceMapper;
+import com.ohdeerit.blog.services.interfaces.UserService;
+import com.ohdeerit.blog.services.interfaces.PostService;
+import com.ohdeerit.blog.services.interfaces.TagService;
 import com.ohdeerit.blog.models.entities.CategoryEntity;
 import com.ohdeerit.blog.repositories.PostRepository;
 import com.ohdeerit.blog.models.entities.UserEntity;
 import com.ohdeerit.blog.models.entities.PostEntity;
 import com.ohdeerit.blog.models.dtos.CreatePostDto;
 import jakarta.persistence.EntityNotFoundException;
-import com.ohdeerit.blog.services.mappers.PostServiceMapper;
 import com.ohdeerit.blog.models.entities.TagEntity;
-import com.ohdeerit.blog.services.interfaces.CategoryService;
 import com.ohdeerit.blog.models.enums.PostStatus;
-import com.ohdeerit.blog.services.interfaces.UserService;
 import org.springframework.stereotype.Service;
-import com.ohdeerit.blog.services.interfaces.PostService;
 import com.ohdeerit.blog.models.dtos.PostDto;
-import com.ohdeerit.blog.services.interfaces.TagService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashSet;
@@ -38,6 +38,14 @@ public class PostServiceImpl implements PostService {
     public PostDto getPost(UUID id) {
         final PostEntity postEntity = postRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("No post found with id: " + id));
+
+        return postMapper.map(postEntity);
+    }
+
+    @Override
+    public PostDto getPostBySlug(String slug) {
+        final PostEntity postEntity = postRepository.findBySlug(slug)
+                .orElseThrow(() -> new EntityNotFoundException("Post not found with slug: " + slug));
 
         return postMapper.map(postEntity);
     }

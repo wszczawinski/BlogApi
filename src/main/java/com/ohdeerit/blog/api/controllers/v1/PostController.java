@@ -1,11 +1,11 @@
 package com.ohdeerit.blog.api.controllers.v1;
 
-import com.ohdeerit.blog.api.request.CreatePostRequest;
 import org.springframework.validation.annotation.Validated;
+import com.ohdeerit.blog.services.interfaces.PostService;
+import com.ohdeerit.blog.api.request.CreatePostRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import jakarta.validation.constraints.NotNull;
-import com.ohdeerit.blog.services.interfaces.PostService;
 import com.ohdeerit.blog.models.dtos.PostDto;
 import org.springframework.http.HttpStatus;
 import lombok.RequiredArgsConstructor;
@@ -56,4 +56,12 @@ public class PostController {
 
         return ResponseEntity.ok(postDto);
     }
+
+    @GetMapping(path = "/slug/{slug}")
+    public ResponseEntity<PostDto> getPostBySlug(@PathVariable String slug) {
+        final PostDto postDto = postService.getPostBySlug(slug);
+
+        return ResponseEntity.ok(postDto);
+    }
+
 }

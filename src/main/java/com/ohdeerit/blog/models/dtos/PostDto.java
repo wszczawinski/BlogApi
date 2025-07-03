@@ -9,6 +9,7 @@ import java.util.Set;
 public record PostDto(
         UUID id,
         String title,
+        String slug,
         String content,
         AuthorDto author,
         PostStatus status,
