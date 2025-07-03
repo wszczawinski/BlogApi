@@ -26,6 +26,9 @@ public class PostEntity {
     @Column(nullable = false, unique = true)
     private String title;
 
+    @Column(nullable = false, unique = true)
+    private String slug;
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
@@ -64,6 +67,7 @@ public class PostEntity {
         PostEntity that = (PostEntity) o;
         return Objects.equals(id, that.id)
                 && Objects.equals(title, that.title)
+                && Objects.equals(slug, that.slug)
                 && Objects.equals(content, that.content)
                 && status == that.status
                 && Objects.equals(readingTime, that.readingTime)
@@ -82,10 +86,36 @@ public class PostEntity {
 
         this.createdAt = now;
         this.updatedAt = now;
+
+        if (this.slug == null || this.slug.trim().isEmpty()) {
+            this.slug = generateSlug(this.title);
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    private String generateSlug(String title) {
+        if (title == null || title.trim().isEmpty()) {
+            return UUID.randomUUID().toString();
+        }
+
+        return title.toLowerCase()
+                .replace("ą", "a")
+                .replace("ć", "c")
+                .replace("ę", "e")
+                .replace("ł", "l")
+                .replace("ń", "n")
+                .replace("ó", "o")
+                .replace("ś", "s")
+                .replace("ź", "z")
+                .replace("ż", "z")
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
+    }
+
 }
