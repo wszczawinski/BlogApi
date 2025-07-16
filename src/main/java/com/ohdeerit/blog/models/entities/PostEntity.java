@@ -55,6 +55,14 @@ public class PostEntity {
     )
     private Set<TagEntity> tags = new HashSet<>();
 
+    @OneToOne
+    @JoinTable(
+            name = "post_media",
+            joinColumns = @JoinColumn(name = "post_id"),
+            inverseJoinColumns = @JoinColumn(name = "media_id")
+    )
+    private MediaEntity media;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 

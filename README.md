@@ -44,36 +44,55 @@ Fun? Always.
 ## 🧠 Domain Model
 
 ```
-+---------------------+       +----------------------+
-|       User          |       |         Post         |
-+---------------------+       +----------------------+
-| id: Long            |<----->| id: Long             |
-| email: String       |       | title: String        |
-| name: String        |       | content: String      |
-| password: String    |       | readingTime: Int     |
-| createdAt: DateTime |       | createdAt: DateTime  |
-+---------------------+       | updatedAt: DateTime  |
-                              +----------+-----------+
-                                         |
-                                         |
-                     +-------------------+-------------------+
-                     |                                       |
-             +---------------+                      +-----------------+
-             |     Tag       |                      |   Category      |
-             +---------------+                      +-----------------+
-             | id: Long      |                      | id: Long        |
-             | name: String  |                      | name: String    |
-             +---------------+                      +-----------------+
-
++---------------------+       +----------------------+         +---------------------+
+|       User          |       |         Post         |         |        Media        |
++---------------------+       +----------------------+         +---------------------+
+| id: UUID            |<----->| id: UUID             |<------->| id: Long            |
+| email: String       |       | title: String        |         | name: String        |
+| name: String        |       | slug: String         |         | short: String       |
+| password: String    |       | content: String      |         | shortSlug: String   |
+| createdAt: DateTime |       | status: PostStatus   |         | folder: String      |
++---------------------+       | readingTime: Int     |         | type: Int           |
+                              | createdAt: DateTime  |         | status: Int         |
+                              | updatedAt: DateTime  |         | updatedAt: Date     |
+                              +----------+-----------+         +---------------------+
+                                         |                               |
+                    +--------------------+----+                          |
+                    |                         |                          v
+           +---------------+         +-----------------+       +--------------------+
+           |     Tag       |         |   Category      |       |    MediaFile       |
+           +---------------+         +-----------------+       +--------------------+
+           | id: UUID      |         | id: UUID        |       | id: Long           |
+           | name: String  |         | name: String    |       | mediaId: Long      |
+           +---------------+         +-----------------+       | file: String       |
+                                                               | short: String      |
+                                                               | size: Int          |
+                                                               | position: Int      |
+                                                               +--------------------+
 ```
 
 **Relationships:**
-
 - A `User` can author multiple `Posts` (1:N)
-- A `Post` can have multiple `Tags` (M:N)
+- A `Post` can have multiple `Tags` (M:N via post_tags)
 - A `Post` belongs to one `Category` (N:1)
+- A `Post` can be associated with multiple `Media` galleries (M:N via post_media)
+- A `Media` gallery can contain multiple `MediaFile` entries (1:N)
+- A `Media` gallery can be associated with multiple `Posts` (M:N via post_media)
 
 ---
+
+## 🗺️ Roadmap
+
+### Media & Gallery Features
+- [x] **Media Domain Model** - Added media tables to support image galleries
+- [x] **Database Migration** - Created V2 migration for media, media_file, and post_media tables
+- [ ] **Gallery API** - Create endpoints for managing media galleries attached to posts
+- [ ] **Post Thumbnails** - Enable adding thumbnail pictures for blog posts
+- [ ] **Inline Images** - Support for adding pictures inside post content/text
+
+---
+
+
 
 ## ⚙️ Getting Started
 
