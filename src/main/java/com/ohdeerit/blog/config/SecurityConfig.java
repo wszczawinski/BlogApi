@@ -60,6 +60,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/posts/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/tags/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/tags/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/media/**").authenticated()
 
                         .anyRequest().authenticated()
                 )
