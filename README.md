@@ -92,8 +92,6 @@ Fun? Always.
 
 ---
 
-
-
 ## ⚙️ Getting Started
 
 ### Prerequisites
@@ -144,3 +142,30 @@ Fun? Always.
    ```bash
    mvn test
    ```
+
+---
+
+## GitHub Actions - Build & Security
+
+### Overview
+
+Automated CI/CD pipeline that runs **build validation** and **security scanning** on push and pull requests, ensuring code quality and security before deployment.
+
+### Pipeline Jobs
+
+#### 🔨 Build Check
+- **Java 21** with Maven dependency caching
+- **Clean package build** (tests skipped for speed)
+- **Validates compilation** before deployment
+
+#### 🔐 Security Check  
+- **Snyk CLI** for dependency and code scanning
+- **Medium+ severity threshold** 
+- **Continuous monitoring** on develop branch
+- **Non-blocking** - won't fail builds on findings
+
+### Setup
+1. Add `SNYK_TOKEN` secret to repository settings
+2. Pipeline runs automatically on:
+   - Push to `develop` 
+   - Pull requests to `master`
