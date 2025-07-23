@@ -6,35 +6,28 @@ import com.ohdeerit.blog.models.entities.PostEntity;
 import com.ohdeerit.blog.models.entities.TagEntity;
 import com.ohdeerit.blog.models.enums.PostStatus;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import java.util.Optional;
-import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface PostRepository extends JpaRepository<PostEntity, UUID> {
+    Slice<PostEntity> findAllByStatus(PostStatus status, Pageable pageable);
 
-    List<PostEntity> findAllByStatusAndCategoryAndTagsContaining(
+    Slice<PostEntity> findAllByStatusAndCategory(PostStatus status, CategoryEntity category, Pageable pageable);
+
+    Slice<PostEntity> findAllByStatusAndTagsContaining(PostStatus status, TagEntity tag, Pageable pageable);
+
+    Slice<PostEntity> findAllByStatusAndCategoryAndTagsContaining(
             PostStatus status,
             CategoryEntity category,
-            TagEntity tag);
-
-    List<PostEntity> findAllByStatusAndCategory(
-            PostStatus status,
-            CategoryEntity category
+            TagEntity tag,
+            Pageable pageable
     );
 
-    List<PostEntity> findAllByStatusAndTagsContaining(
-            PostStatus status,
-            TagEntity tag
-    );
-
-    List<PostEntity> findAllByStatus(
-            PostStatus status
-    );
-
-    List<PostEntity> findAllByAuthorIdAndStatus(UUID authorId, PostStatus status);
+    Slice<PostEntity> findAllByAuthorIdAndStatus(UUID authorId, PostStatus status, Pageable pageable);
 
     Optional<PostEntity> findBySlug(String slug);
-
 }
