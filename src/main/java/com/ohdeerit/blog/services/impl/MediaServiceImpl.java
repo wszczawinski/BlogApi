@@ -11,8 +11,10 @@ import com.ohdeerit.blog.repositories.MediaRepository;
 import com.ohdeerit.blog.models.entities.MediaEntity;
 import com.ohdeerit.blog.models.dtos.CreateMediaDto;
 import com.ohdeerit.blog.utils.FileOperationsUtil;
+import org.springframework.data.domain.Pageable;
 import com.ohdeerit.blog.models.dtos.MediaDto;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Slice;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,6 +37,14 @@ public class MediaServiceImpl implements MediaService {
 
     @Value("${app.media.max-files}")
     private int maxFiles;
+
+    @Override
+    @Transactional(readOnly = true)
+    public Slice<MediaDto> getMedia(Pageable pageable) {
+        Slice<MediaEntity> mediaEntities = mediaRepository.findAllBy(pageable);
+
+        return mediaEntities.map(mediaMapper::map);
+    }
 
     @Override
     @Transactional

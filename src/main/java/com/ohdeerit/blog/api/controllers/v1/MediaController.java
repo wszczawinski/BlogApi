@@ -1,14 +1,16 @@
 package com.ohdeerit.blog.api.controllers.v1;
 
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.validation.annotation.Validated;
 import com.ohdeerit.blog.services.interfaces.MediaService;
+import org.springframework.beans.factory.annotation.Value;
 import com.ohdeerit.blog.api.request.CreateMediaRequest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import com.ohdeerit.blog.models.dtos.MediaDto;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,20 @@ import jakarta.validation.Valid;
 public class MediaController {
 
     private final MediaService mediaService;
+
+    @Value("${app.pagination.posts-per-page}")
+    private int mediaPerPage;
+
+    @GetMapping
+    public ResponseEntity<Slice<MediaDto>> getMedia(
+            @RequestParam(defaultValue = "1") int page
+    ) {
+        Sort sort = Sort.by(Sort.Direction.DESC, "id");
+        Pageable pageable = PageRequest.of(page - 1, mediaPerPage, sort);
+
+        Slice<MediaDto> media = mediaService.getMedia(pageable);
+        return ResponseEntity.ok(media);
+    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MediaDto> createMedia(@ModelAttribute @Valid CreateMediaRequest request) {

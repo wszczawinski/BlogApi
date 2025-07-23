@@ -14,7 +14,9 @@ import com.ohdeerit.blog.models.dtos.CreatePostDto;
 import jakarta.persistence.EntityNotFoundException;
 import com.ohdeerit.blog.models.entities.TagEntity;
 import com.ohdeerit.blog.models.enums.PostStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Slice;
 import com.ohdeerit.blog.models.dtos.PostDto;
 import lombok.RequiredArgsConstructor;
 
@@ -52,44 +54,36 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<PostDto> getPosts(UUID categoryId, UUID tagId) {
-        List<PostEntity> postEntities;
+    public Slice<PostDto> getPosts(UUID categoryId, UUID tagId, Pageable pageable) {
+        Slice<PostEntity> postEntities;
 
         if (categoryId != null && tagId != null) {
             CategoryEntity category = categoryService.getCategory(categoryId);
             TagEntity tag = tagService.getTag(tagId);
-
             postEntities = postRepository.findAllByStatusAndCategoryAndTagsContaining(
-                    PostStatus.PUBLISHED,
-                    category,
-                    tag
-            );
+                    PostStatus.PUBLISHED, category, tag, pageable);
         } else if (categoryId != null) {
             CategoryEntity category = categoryService.getCategory(categoryId);
-
             postEntities = postRepository.findAllByStatusAndCategory(
-                    PostStatus.PUBLISHED,
-                    category
-            );
-        }else if (tagId != null) {
+                    PostStatus.PUBLISHED, category, pageable);
+        } else if (tagId != null) {
             TagEntity tag = tagService.getTag(tagId);
-
             postEntities = postRepository.findAllByStatusAndTagsContaining(
-                    PostStatus.PUBLISHED,
-                    tag
-            );
+                    PostStatus.PUBLISHED, tag, pageable);
         } else {
-            postEntities = postRepository.findAllByStatus(PostStatus.PUBLISHED);
+            postEntities = postRepository.findAllByStatus(PostStatus.PUBLISHED, pageable);
         }
 
-        return postEntities.stream().map(postMapper::map).toList();
+        return postEntities.map(postMapper::map);
     }
 
     @Override
-    public List<PostDto> getDraftPosts(UUID userId) {
-        final List<PostEntity> postEntities =  postRepository.findAllByAuthorIdAndStatus(userId, PostStatus.DRAFT);
+    @Transactional(readOnly = true)
+    public Slice<PostDto> getDraftPosts(UUID userId, Pageable pageable) {
+        final Slice<PostEntity> postEntities = postRepository.findAllByAuthorIdAndStatus(
+                userId, PostStatus.DRAFT, pageable);
 
-        return postEntities.stream().map(postMapper::map).toList();
+        return postEntities.map(postMapper::map);
     }
 
     @Override
