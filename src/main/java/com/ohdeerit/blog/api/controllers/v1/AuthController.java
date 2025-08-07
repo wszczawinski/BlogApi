@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @RestController
 @RequestMapping(path = "/api/v1/auth")
@@ -40,7 +40,7 @@ public class AuthController {
                 .domain(null)
                 .build();
 
-        final LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(SecurityConstants.SESSION_DURATION_SECONDS);
+        final ZonedDateTime expiresAt = ZonedDateTime.now().plusSeconds(SecurityConstants.SESSION_DURATION_SECONDS);
         final AuthResponse authResponse = new AuthResponse(expiresAt);
 
         return ResponseEntity.ok()
