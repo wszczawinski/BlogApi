@@ -1,8 +1,8 @@
 package com.ohdeerit.blog.api.response;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 public record AuthResponse(
-        LocalDateTime expiresAt
+        ZonedDateTime expiresAt
 ) {
 }
