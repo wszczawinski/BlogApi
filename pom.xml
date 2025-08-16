@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.7</version>
+		<version>3.4.8</version>
 		<relativePath/>
 	</parent>
 	<groupId>com.ohdeerit</groupId>
@@ -30,6 +30,7 @@
 		<java.version>21</java.version>
 		<org.mapstruct.version>1.6.3</org.mapstruct.version>
 		<lombok.version>1.18.36</lombok.version>
+		<tomcat.version>10.1.44</tomcat.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -43,6 +44,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+			<version>3.4.8</version>
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
