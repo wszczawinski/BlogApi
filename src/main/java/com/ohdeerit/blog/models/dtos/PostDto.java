@@ -13,6 +13,7 @@ public record PostDto(
         String content,
         AuthorDto author,
         PostStatus status,
+        MediaDto media,
         CategoryDto category,
         Set<TagDto> tags,
         Integer readingTime,

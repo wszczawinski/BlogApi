@@ -1,23 +1,18 @@
 package com.ohdeerit.blog.services.impl;
 
 import org.springframework.transaction.annotation.Transactional;
-import com.ohdeerit.blog.services.interfaces.CategoryService;
 import com.ohdeerit.blog.services.mappers.PostServiceMapper;
-import com.ohdeerit.blog.services.interfaces.UserService;
-import com.ohdeerit.blog.services.interfaces.PostService;
-import com.ohdeerit.blog.services.interfaces.TagService;
-import com.ohdeerit.blog.models.entities.CategoryEntity;
+import com.ohdeerit.blog.repositories.PostMediaRepository;
 import com.ohdeerit.blog.repositories.PostRepository;
-import com.ohdeerit.blog.models.entities.UserEntity;
-import com.ohdeerit.blog.models.entities.PostEntity;
 import com.ohdeerit.blog.models.dtos.CreatePostDto;
 import jakarta.persistence.EntityNotFoundException;
-import com.ohdeerit.blog.models.entities.TagEntity;
 import com.ohdeerit.blog.models.enums.PostStatus;
 import org.springframework.data.domain.Pageable;
+import com.ohdeerit.blog.services.interfaces.*;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Slice;
 import com.ohdeerit.blog.models.dtos.PostDto;
+import com.ohdeerit.blog.models.entities.*;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashSet;
@@ -33,6 +28,8 @@ public class PostServiceImpl implements PostService {
     private final CategoryService categoryService;
     private final UserService userService;
     private final TagService tagService;
+    private final MediaService mediaService;
+    private final PostMediaRepository postMediaRepository;
 
     private final PostServiceMapper postMapper;
 
@@ -92,6 +89,11 @@ public class PostServiceImpl implements PostService {
         final UserEntity userEntity = userService.getUser(userId);
         final List<TagEntity> tagEntities = tagService.getTags(post.tagIds());
 
+        MediaEntity mediaEntity = null;
+        if (post.mediaId() != null) {
+            mediaEntity = mediaService.getMedia(post.mediaId());
+        }
+
         PostEntity newPost = new PostEntity();
         newPost.setCategory(categoryEntity);
         newPost.setAuthor(userEntity);
@@ -101,7 +103,21 @@ public class PostServiceImpl implements PostService {
         newPost.setReadingTime(calculateReadTime(post.content()));
         newPost.setTags(new HashSet<>(tagEntities));
 
+        if (mediaEntity != null) {
+            newPost.setMedia(mediaEntity);
+        }
+
         final PostEntity savedPost = postRepository.save(newPost);
+
+        if (post.mediaId() != null) {
+            PostMediaEntity postMediaEntity = PostMediaEntity.builder()
+                    .postId(savedPost.getId())
+                    .mediaId(post.mediaId())
+                    .build();
+
+            postMediaRepository.save(postMediaEntity);
+        }
+
         return postMapper.map(savedPost);
     }
 

@@ -39,6 +39,12 @@ public class MediaServiceImpl implements MediaService {
     private int maxFiles;
 
     @Override
+    public MediaEntity getMedia(Integer id) {
+        return mediaRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("No media found with id: " + id));
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public Slice<MediaDto> getMedia(Pageable pageable) {
         Slice<MediaEntity> mediaEntities = mediaRepository.findAllBy(pageable);

@@ -1,5 +1,6 @@
 package com.ohdeerit.blog.services.interfaces;
 
+import com.ohdeerit.blog.models.entities.MediaEntity;
 import com.ohdeerit.blog.models.dtos.CreateMediaDto;
 import org.springframework.data.domain.Pageable;
 import com.ohdeerit.blog.models.dtos.MediaDto;
@@ -11,4 +12,5 @@ public interface MediaService {
 
     Slice<MediaDto> getMedia(Pageable pageable);
 
+    MediaEntity getMedia(Integer id);
 }

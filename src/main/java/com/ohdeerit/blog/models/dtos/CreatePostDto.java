@@ -1,6 +1,7 @@
 package com.ohdeerit.blog.models.dtos;
 
 import com.ohdeerit.blog.models.enums.PostStatus;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -23,6 +24,9 @@ public record CreatePostDto(
         Set<UUID> tagIds,
 
         @NotNull(message = "Post status is required")
-        PostStatus status
+        PostStatus status,
+
+        @Positive(message = "Media ID must be a positive number")
+        Integer mediaId
 ) {
 }

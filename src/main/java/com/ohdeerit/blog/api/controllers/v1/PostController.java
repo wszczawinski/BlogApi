@@ -44,10 +44,10 @@ public class PostController {
     @GetMapping(path = "/drafts")
     public ResponseEntity<Slice<PostDto>> getDrafts(
             @RequestAttribute UUID userId,
-            @RequestParam(defaultValue = "0") int page
+            @RequestParam(defaultValue = "1") int page
     ) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        Pageable pageable = PageRequest.of(page, postsPerPage, sort);
+        Pageable pageable = PageRequest.of(page - 1, postsPerPage, sort);
         Slice<PostDto> posts = postService.getDraftPosts(userId, pageable);
 
         return ResponseEntity.ok(posts);

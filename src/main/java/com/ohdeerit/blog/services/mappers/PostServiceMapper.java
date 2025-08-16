@@ -12,6 +12,7 @@ public interface PostServiceMapper {
     @Mapping(target = "author", source = "author")
     @Mapping(target = "category", source = "category")
     @Mapping(target = "tags", source = "tags")
+    @Mapping(target = "media", source = "media")
     PostDto map(PostEntity post);
 
 }
