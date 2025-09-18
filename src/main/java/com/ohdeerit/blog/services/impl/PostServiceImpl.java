@@ -4,6 +4,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ohdeerit.blog.services.mappers.PostServiceMapper;
 import com.ohdeerit.blog.repositories.PostMediaRepository;
 import com.ohdeerit.blog.repositories.PostRepository;
+import com.ohdeerit.blog.models.dtos.UpdatePostDto;
 import com.ohdeerit.blog.models.dtos.CreatePostDto;
 import jakarta.persistence.EntityNotFoundException;
 import com.ohdeerit.blog.models.enums.PostStatus;
@@ -15,9 +16,11 @@ import com.ohdeerit.blog.models.dtos.PostDto;
 import com.ohdeerit.blog.models.entities.*;
 import lombok.RequiredArgsConstructor;
 
+import java.util.stream.Collectors;
 import java.util.HashSet;
-import java.util.List;
 import java.util.UUID;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -76,11 +79,10 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public Slice<PostDto> getDraftPosts(UUID userId, Pageable pageable) {
-        final Slice<PostEntity> postEntities = postRepository.findAllByAuthorIdAndStatus(
-                userId, PostStatus.DRAFT, pageable);
+    public Slice<PostDto> getAllPosts(Pageable pageable) {
+        Slice<PostEntity> posts = postRepository.findAll(pageable);
 
-        return postEntities.map(postMapper::map);
+        return posts.map(postMapper::map);
     }
 
     @Override
@@ -109,16 +111,53 @@ public class PostServiceImpl implements PostService {
 
         final PostEntity savedPost = postRepository.save(newPost);
 
-        if (post.mediaId() != null) {
-            PostMediaEntity postMediaEntity = PostMediaEntity.builder()
-                    .postId(savedPost.getId())
-                    .mediaId(post.mediaId())
-                    .build();
+        return postMapper.map(savedPost);
+    }
 
-            postMediaRepository.save(postMediaEntity);
+    @Override
+    @Transactional
+    public PostDto updatePost(UUID id, UpdatePostDto updatePostDto, UUID userId) {
+        PostEntity existingPost = postRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Post with id " + id + " not found"));
+
+        if (updatePostDto.title() != null) {
+            existingPost.setTitle(updatePostDto.title());
         }
 
-        return postMapper.map(savedPost);
+        if (updatePostDto.content() != null) {
+            existingPost.setContent(updatePostDto.content());
+            existingPost.setReadingTime(calculateReadTime(updatePostDto.content()));
+        }
+
+        if (updatePostDto.categoryId() != null) {
+            CategoryEntity category = categoryService.getCategory(updatePostDto.categoryId());
+            existingPost.setCategory(category);
+        }
+
+        if (updatePostDto.tagIds() != null) {
+            Set<TagEntity> tags = updatePostDto.tagIds().stream()
+                    .map(tagService::getTag)
+                    .collect(Collectors.toSet());
+            existingPost.getTags().clear();
+            existingPost.getTags().addAll(tags);
+        }
+
+        if (updatePostDto.status() != null) {
+            existingPost.setStatus(updatePostDto.status());
+        }
+
+        if (updatePostDto.mediaId() != null) {
+            if (existingPost.getMedia() != null && !existingPost.getMedia().getId().equals(updatePostDto.mediaId())) {
+                postMediaRepository.deleteByPostId(existingPost.getId());
+                postMediaRepository.flush();
+            }
+
+            final MediaEntity mediaEntity = mediaService.getMedia(updatePostDto.mediaId());
+            existingPost.setMedia(mediaEntity);
+        }
+
+        final PostEntity updatedPost = postRepository.save(existingPost);
+        return postMapper.map(updatedPost);
     }
 
     private static Integer calculateReadTime(String content) {

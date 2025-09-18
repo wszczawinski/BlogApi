@@ -55,7 +55,7 @@ public class PostEntity {
     )
     private Set<TagEntity> tags = new HashSet<>();
 
-    @OneToOne
+    @ManyToOne
     @JoinTable(
             name = "post_media",
             joinColumns = @JoinColumn(name = "post_id"),
@@ -125,5 +125,4 @@ public class PostEntity {
                 .replaceAll("-+", "-")
                 .replaceAll("^-|-$", "");
     }
-
 }

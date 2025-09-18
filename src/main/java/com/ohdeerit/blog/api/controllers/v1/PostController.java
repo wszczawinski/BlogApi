@@ -3,6 +3,7 @@ package com.ohdeerit.blog.api.controllers.v1;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.beans.factory.annotation.Value;
 import com.ohdeerit.blog.services.interfaces.PostService;
+import com.ohdeerit.blog.api.request.UpdatePostRequest;
 import com.ohdeerit.blog.api.request.CreatePostRequest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import com.ohdeerit.blog.models.dtos.PostDto;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 
 import java.util.UUID;
 
@@ -41,14 +43,14 @@ public class PostController {
         return ResponseEntity.ok(posts);
     }
 
-    @GetMapping(path = "/drafts")
-    public ResponseEntity<Slice<PostDto>> getDrafts(
+    @GetMapping(path = "/all")
+    public ResponseEntity<Slice<PostDto>> getAllPosts(
             @RequestAttribute UUID userId,
             @RequestParam(defaultValue = "1") int page
     ) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page - 1, postsPerPage, sort);
-        Slice<PostDto> posts = postService.getDraftPosts(userId, pageable);
+        Slice<PostDto> posts = postService.getAllPosts(pageable);
 
         return ResponseEntity.ok(posts);
     }
@@ -62,6 +64,18 @@ public class PostController {
 
         return new ResponseEntity<>(postDto, HttpStatus.CREATED);
     }
+
+    @PutMapping(path = "/{id}")
+    public ResponseEntity<PostDto> updatePost(
+            @PathVariable UUID id,
+            @RequestBody @NotNull @Valid UpdatePostRequest updatePostRequest,
+            @RequestAttribute UUID userId
+    ) {
+        final PostDto postDto = postService.updatePost(id, updatePostRequest.post(), userId);
+
+        return ResponseEntity.ok(postDto);
+    }
+
 
     @GetMapping(path = "/{id}")
     public ResponseEntity<PostDto> getPost(@PathVariable UUID id) {
