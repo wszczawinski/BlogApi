@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import com.ohdeerit.blog.services.interfaces.PostService;
 import com.ohdeerit.blog.api.request.UpdatePostRequest;
 import com.ohdeerit.blog.api.request.CreatePostRequest;
+import com.ohdeerit.blog.services.mappers.SliceMapper;
+import com.ohdeerit.blog.api.response.SliceResponse;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
@@ -26,12 +28,13 @@ import java.util.UUID;
 public class PostController {
 
     private final PostService postService;
+    private final SliceMapper sliceMapper;
 
     @Value("${app.pagination.posts-per-page}")
     private int postsPerPage;
 
     @GetMapping
-    public ResponseEntity<Slice<PostDto>> getPosts(
+    public ResponseEntity<SliceResponse<PostDto>> getPosts(
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) UUID tagId,
             @RequestParam(defaultValue = "1") int page
@@ -39,20 +42,22 @@ public class PostController {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page - 1, postsPerPage, sort);
         Slice<PostDto> posts = postService.getPosts(categoryId, tagId, pageable);
+        SliceResponse<PostDto> response = sliceMapper.toSliceResponse(posts);
 
-        return ResponseEntity.ok(posts);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping(path = "/all")
-    public ResponseEntity<Slice<PostDto>> getAllPosts(
+    public ResponseEntity<SliceResponse<PostDto>> getAllPosts(
             @RequestAttribute UUID userId,
             @RequestParam(defaultValue = "1") int page
     ) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
         Pageable pageable = PageRequest.of(page - 1, postsPerPage, sort);
         Slice<PostDto> posts = postService.getAllPosts(pageable);
+        SliceResponse<PostDto> response = sliceMapper.toSliceResponse(posts);
 
-        return ResponseEntity.ok(posts);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping

@@ -4,6 +4,8 @@ import org.springframework.validation.annotation.Validated;
 import com.ohdeerit.blog.services.interfaces.MediaService;
 import org.springframework.beans.factory.annotation.Value;
 import com.ohdeerit.blog.api.request.CreateMediaRequest;
+import com.ohdeerit.blog.services.mappers.SliceMapper;
+import com.ohdeerit.blog.api.response.SliceResponse;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
@@ -23,19 +25,21 @@ import jakarta.validation.Valid;
 public class MediaController {
 
     private final MediaService mediaService;
+    private final SliceMapper sliceMapper;
 
     @Value("${app.pagination.posts-per-page}")
     private int mediaPerPage;
 
     @GetMapping
-    public ResponseEntity<Slice<MediaDto>> getMedia(
+    public ResponseEntity<SliceResponse<MediaDto>> getMedia(
             @RequestParam(defaultValue = "1") int page
     ) {
         Sort sort = Sort.by(Sort.Direction.DESC, "id");
         Pageable pageable = PageRequest.of(page - 1, mediaPerPage, sort);
 
         Slice<MediaDto> media = mediaService.getMedia(pageable);
-        return ResponseEntity.ok(media);
+        SliceResponse<MediaDto> response = sliceMapper.toSliceResponse(media);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
