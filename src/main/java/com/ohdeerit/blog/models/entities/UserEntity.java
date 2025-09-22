@@ -31,6 +31,7 @@ public class UserEntity {
     @Column(nullable = false)
     private String name;
 
+    @Builder.Default
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostEntity> posts = new ArrayList<>();
 

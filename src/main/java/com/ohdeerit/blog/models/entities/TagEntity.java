@@ -24,6 +24,7 @@ public class TagEntity {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Builder.Default
     @ManyToMany(mappedBy = "tags")
     private Set<PostEntity> posts = new HashSet<>();
 

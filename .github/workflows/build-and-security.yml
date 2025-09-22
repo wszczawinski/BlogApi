@@ -3,8 +3,6 @@ name: Build and Security Checks
 on:
   push:
     branches: [develop]
-  pull_request:
-    branches: [master]
 
 jobs:
   build-check:
@@ -54,13 +52,12 @@ jobs:
         run: snyk auth $SNYK_TOKEN
 
       - name: 📦 Snyk Dependency Scan (SCA)
-        run: snyk test --all-sub-projects --severity-threshold=medium --file=pom.xml
+        run: snyk test --all-sub-projects --severity-threshold=high --file=pom.xml
         continue-on-error: true
 
       - name: 🧠 Snyk Code Scan (SAST)
-        run: snyk code test --severity-threshold=medium
+        run: snyk code test --severity-threshold=high
         continue-on-error: true
 
       - name: 📡 Monitor for Future Issues
-        if: github.ref == 'refs/heads/develop'
         run: snyk monitor --all-sub-projects

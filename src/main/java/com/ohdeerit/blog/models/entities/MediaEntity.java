@@ -42,6 +42,7 @@ public class MediaEntity {
     @Column(name = "updated_at", nullable = false, updatable = false)
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @OneToMany
     @JoinColumn(name = "media_id")
     @OrderBy("position ASC")

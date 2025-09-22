@@ -47,6 +47,7 @@ public class PostEntity {
     @JoinColumn(name = "category_id", nullable = false)
     private CategoryEntity category;
 
+    @Builder.Default
     @ManyToMany
     @JoinTable(
             name = "post_tags",
