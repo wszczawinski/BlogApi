@@ -24,6 +24,7 @@ public class CategoryEntity {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Builder.Default
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     private List<PostEntity> posts = new ArrayList<>();
 
