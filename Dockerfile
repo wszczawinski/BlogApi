@@ -26,10 +26,6 @@ RUN mkdir -p /app/logs /app/media && \
     chown -R www-data:www-data /app/media && \
     chmod -R 755 /app/media
 
-# These volumes will persist across container recreations
-VOLUME /app/logs
-VOLUME /app/media
-
 ENV SERVER_PORT=${SERVER_PORT} \
     SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL} \
     SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME} \
