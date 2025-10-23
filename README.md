@@ -72,6 +72,7 @@ Fun? Always.
 ```
 
 **Relationships:**
+
 - A `User` can author multiple `Posts` (1:N)
 - A `Post` can have multiple `Tags` (M:N via post_tags)
 - A `Post` belongs to one `Category` (N:1)
@@ -84,6 +85,7 @@ Fun? Always.
 ## 🗺️ Roadmap
 
 ### Media & Gallery Features
+
 - [x] **Media Domain Model** - Added media tables to support image galleries
 - [x] **Database Migration** - Created V2 migration for media, media_file, and post_media tables
 - [ ] **Gallery API** - Create endpoints for managing media galleries attached to posts
@@ -149,23 +151,174 @@ Fun? Always.
 
 ### Overview
 
-Automated CI/CD pipeline that runs **build validation** and **security scanning** on push and pull requests, ensuring code quality and security before deployment.
+Automated CI/CD pipeline that runs **build validation** and **security scanning** on push and pull requests, ensuring
+code quality and security before deployment.
 
 ### Pipeline Jobs
 
 #### 🔨 Build Check
+
 - **Java 21** with Maven dependency caching
 - **Clean package build** (tests skipped for speed)
 - **Validates compilation** before deployment
 
-#### 🔐 Security Check  
+#### 🔐 Security Check
+
 - **Snyk CLI** for dependency and code scanning
-- **Medium+ severity threshold** 
+- **Medium+ severity threshold**
 - **Continuous monitoring** on develop branch
 - **Non-blocking** - won't fail builds on findings
 
 ### Setup
+
 1. Add `SNYK_TOKEN` secret to repository settings
 2. Pipeline runs automatically on:
-   - Push to `develop` 
-   - Pull requests to `master`
+    - Push to `develop`
+    - Pull requests to `master`
+
+---
+
+## Deployment
+
+### Volume Management
+
+This application uses persistent volumes for logs and media files. The volumes are managed using bind mounts to ensure
+easy access and backup on the host system.
+
+#### Volume Locations
+
+- **Logs**: `/app/logs` (container) → `/var/dokploy/blog-api/logs` (host)
+- **Media**: `/app/media` (container) → `/var/dokploy/blog-api/media` (host)
+
+#### Setting Up Volumes on VPS
+
+Before deploying, create the necessary directories on your VPS:
+
+```bash
+# Create directories
+sudo mkdir -p /var/dokploy/blog-api/logs 
+sudo mkdir -p /var/dokploy/blog-api/media
+
+# Set proper permissions for www-data user (UID 33)
+sudo chown -R 33:33 /var/dokploy/blog-api/media 
+sudo chmod -R 755 /var/dokploy/blog-api/media
+
+# Logs directory permissions
+sudo chmod -R 755 /var/dokploy/blog-api/logs
+```
+
+#### Configuring Mounts in Dokploy
+
+In Dokploy UI, navigate to your application's **Volumes / Mounts** section and add:
+
+**Mount #1 - Logs:**
+
+- Mount Type: `Bind Mount`
+- Host Path: `/var/dokploy/blog-api/logs`
+- Mount Path (container): `/app/logs`
+
+**Mount #2 - Media:**
+
+- Mount Type: `Bind Mount`
+- Host Path: `/var/dokploy/blog-api/media`
+- Mount Path (container): `/app/media`
+
+#### Backup and Restore
+
+**Create a backup:**
+
+```bash
+# Full backup
+tar -czf blog-backup-$(date +%Y%m%d).tar.gz /var/dokploy/blog-api/
+
+# Media only
+tar -czf blog-media-$(date +%Y%m%d).tar.gz /var/dokploy/blog-api/media/
+
+# Logs only
+tar -czf blog-logs-$(date +%Y%m%d).tar.gz /var/dokploy/blog-api/logs/
+```
+
+**Restore from backup:**
+
+```bash 
+# Stop the container first (via Dokploy UI)
+
+# Restore files
+tar -xzf blog-backup-20251023.tar.gz -C /
+
+# Restart the container (via Dokploy UI)
+```
+
+#### Accessing Files
+
+Since bind mounts are used, you can directly access files on the VPS:
+
+```bash
+# List media files
+ls -la /var/dokploy/blog-api/media/
+
+# View recent logs
+tail -f /var/dokploy/blog-api/logs/app.log
+
+# Check disk usage
+du -sh /var/dokploy/blog-api/*
+```
+
+### Dokploy Build Configuration
+
+**Build Type:** Dockerfile  
+**Docker File:** `./Dockerfile`  
+**Docker Context Path:** `.` (default)  
+**Docker Build Stage:** (empty - builds last stage)
+
+### Environment Variables
+
+Create a `.env` file based on `.env.example` and configure all required environment variables before deployment.
+
+### Notes
+
+- The Dockerfile creates mount point directories (`/app/logs` and `/app/media`) but does **not** declare them as
+  Docker-managed volumes
+- Volume management is handled at deployment time via Dokploy's bind mount configuration
+- This approach ensures data is stored in accessible locations on the host for easy backup and management
+
+---
+
+## 🔀 Reverse Proxy Setup
+
+The application uses **nginx** as a reverse proxy and **supervisor** for process management.
+
+### Architecture
+
+- **nginx** (port 80) → serves static media files & proxies API requests
+- **Spring Boot** (port 8080) → handles application logic
+- **supervisor** → manages both processes in a single container
+
+### Configuration Files
+
+- [`nginx.conf`](./nginx.conf) - Nginx reverse proxy configuration
+- [`supervisord.conf`](./supervisord.conf) - Process supervisor configuration
+
+This setup allows efficient static file serving while keeping the application containerized.
+
+---
+
+## 🗄️ Database
+
+### Migrations
+
+Database schema is managed by **Flyway**. Migrations are located in `src/main/resources/db/migrations/`.
+
+**Naming convention:** `V{version}__{description}.sql`
+
+Example:
+
+- `V1__initial_schema.sql`
+- `V2__add_media_tables.sql`
+
+**Running migrations:**
+Flyway runs automatically on application startup. To run manually:
+
+```bash
+mvn flyway:migrate
+```
