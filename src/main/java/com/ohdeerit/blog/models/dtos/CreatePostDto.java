@@ -1,10 +1,9 @@
 package com.ohdeerit.blog.models.dtos;
 
+import org.springframework.web.multipart.MultipartFile;
 import com.ohdeerit.blog.models.enums.PostStatus;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
+import jakarta.validation.Valid;
 
 import java.util.Set;
 import java.util.UUID;
@@ -27,6 +26,10 @@ public record CreatePostDto(
         PostStatus status,
 
         @Positive(message = "Media ID must be a positive number")
-        Integer mediaId
+        Integer mediaId,
+
+        @Valid
+        @NotNull(message = "Thumbnail is required")
+        MultipartFile thumbnailFile
 ) {
 }

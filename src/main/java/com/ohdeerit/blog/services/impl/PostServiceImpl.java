@@ -15,6 +15,7 @@ import org.springframework.data.domain.Slice;
 import com.ohdeerit.blog.models.dtos.PostDto;
 import com.ohdeerit.blog.models.entities.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.stream.Collectors;
 import java.util.HashSet;
@@ -22,16 +23,18 @@ import java.util.UUID;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
-
-    private final PostRepository postRepository;
 
     private final CategoryService categoryService;
     private final UserService userService;
     private final TagService tagService;
     private final MediaService mediaService;
+    private final ThumbnailService thumbnailService;
+
+    private final PostRepository postRepository;
     private final PostMediaRepository postMediaRepository;
 
     private final PostServiceMapper postMapper;
@@ -86,10 +89,18 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    @Transactional
     public PostDto createPost(CreatePostDto post, UUID userId) {
         final CategoryEntity categoryEntity = categoryService.getCategory(post.categoryId());
         final UserEntity userEntity = userService.getUser(userId);
-        final List<TagEntity> tagEntities = tagService.getTags(post.tagIds());
+
+        final String thumbnailFileName = thumbnailService.create(post.thumbnailFile());
+        log.info("Created thumbnail for post '{}': {}", post.title(), thumbnailFileName);
+        
+        List<TagEntity> tagEntities = null;
+        if (post.tagIds() != null && !post.tagIds().isEmpty()) {
+            tagEntities = tagService.getTags(post.tagIds());
+        }
 
         MediaEntity mediaEntity = null;
         if (post.mediaId() != null) {
@@ -103,7 +114,9 @@ public class PostServiceImpl implements PostService {
         newPost.setContent(post.content());
         newPost.setStatus(post.status());
         newPost.setReadingTime(calculateReadTime(post.content()));
-        newPost.setTags(new HashSet<>(tagEntities));
+        if (tagEntities != null) {
+            newPost.setTags(new HashSet<>(tagEntities));
+        }
 
         if (mediaEntity != null) {
             newPost.setMedia(mediaEntity);
