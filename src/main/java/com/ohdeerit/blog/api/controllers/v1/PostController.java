@@ -49,7 +49,6 @@ public class PostController {
 
     @GetMapping(path = "/all")
     public ResponseEntity<SliceResponse<PostDto>> getAllPosts(
-            @RequestAttribute UUID userId,
             @RequestParam(defaultValue = "1") int page
     ) {
         Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
@@ -60,9 +59,9 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping
+    @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<PostDto> createPost(
-            @RequestBody @NotNull CreatePostRequest createPostRequest,
+            @ModelAttribute @Valid @NotNull CreatePostRequest createPostRequest,
             @RequestAttribute UUID userId
     ) {
         final PostDto postDto = postService.createPost(createPostRequest.post(), userId);
