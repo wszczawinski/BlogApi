@@ -12,25 +12,20 @@ public class ThumbnailUtil {
     public static String generateImageMd5Hash(final String fileName, final int width, final int height,
                                               final ThumbnailMethod method, final int percent) {
         try {
-            final String input = fileName + width + height + method.getValue() + percent;
+            final String input = fileName + width + height + method.getValue().toLowerCase() + percent;
 
             final MessageDigest md = MessageDigest.getInstance("MD5");
-            final byte[] hashBytes = md.digest(input.getBytes());
+            final byte[] messageDigest = md.digest(input.getBytes());
 
-            StringBuilder hexString = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
-            for (byte b : hashBytes) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
+            for (byte b : messageDigest) {
+                sb.append(String.format("%02x", b));
             }
 
-            return hexString.toString();
-
+            return sb.toString();
         } catch (NoSuchAlgorithmException e) {
-            log.error("MD5 algorithm not available", e);
+            log.error("[ThumbnailUtil.generateImageMd5Hash] MD5 algorithm not available", e);
             throw new RuntimeException("MD5 algorithm not available", e);
         }
     }
@@ -63,7 +58,8 @@ public class ThumbnailUtil {
         return fileName.substring(0, lastDotIndex);
     }
 
-    public static void validateThumbnailParameters(final int width, final int height, final ThumbnailMethod method, final int percent) {
+    public static void validateThumbnailParameters(final int width, final int height,
+                                                   final ThumbnailMethod method, final int percent) {
         if (width <= 0 || width > 2000) {
             throw new IllegalArgumentException("Width must be between 1 and 2000 pixels");
         }

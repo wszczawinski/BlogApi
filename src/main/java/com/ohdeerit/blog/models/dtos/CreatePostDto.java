@@ -12,6 +12,10 @@ public record CreatePostDto(
         @Size(min = 10, max = 200, message = "Post title must be between {min} and {max} characters")
         String title,
 
+        @NotBlank(message = "Post short description is required")
+        @Size(min = 10, max = 500, message = "Post short description must be between {min} and {max} characters")
+        String shortDescription,
+
         @NotBlank(message = "Post content is required")
         @Size(min = 10, message = "Post content must be at least {min} characters")
         String content,

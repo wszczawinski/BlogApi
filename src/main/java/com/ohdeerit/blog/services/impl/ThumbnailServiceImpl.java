@@ -9,6 +9,7 @@ import com.ohdeerit.blog.models.enums.ThumbnailMethod;
 import net.coobird.thumbnailator.geometry.Positions;
 import org.springframework.stereotype.Service;
 import net.coobird.thumbnailator.Thumbnails;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.image.BufferedImage;
@@ -39,6 +40,17 @@ public class ThumbnailServiceImpl implements ThumbnailService {
     @Value("${app.thumbnail.default-percent}")
     private int defaultPercent;
 
+    @PostConstruct
+    private void init() throws IOException {
+        Path uploadPath = Paths.get(uploadDirectory);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+            log.info("[ThumbnailServiceImpl.init] Created upload directory: {}", uploadPath);
+        } else {
+            log.info("[ThumbnailServiceImpl.init] Upload directory already exists: {}", uploadPath);
+        }
+    }
+
     @Override
     public String create(final MultipartFile originalFile) {
         if (originalFile.isEmpty()) {
@@ -66,15 +78,13 @@ public class ThumbnailServiceImpl implements ThumbnailService {
 
             final Path mediaPath = Paths.get(uploadDirectory).resolve(fullHashedFileName);
 
-            Files.createDirectories(mediaPath.getParent());
-
             ImageIO.write(thumbnail, extension.toLowerCase(), mediaPath.toFile());
 
-            log.info("Created thumbnail: {} -> {}", originalFileName, fullHashedFileName);
+            log.info("[ThumbnailServiceImpl.createThumbnail] Created thumbnail: {} -> {}", originalFileName, fullHashedFileName);
             return fullHashedFileName;
 
         } catch (Exception e) {
-            log.error("Failed to create thumbnail for file: {}", originalFile.getOriginalFilename(), e);
+            log.error("[ThumbnailServiceImpl.createThumbnail] Failed to create thumbnail for file: {}", originalFile.getOriginalFilename(), e);
             throw new RuntimeException("Failed to create thumbnail", e);
         }
     }

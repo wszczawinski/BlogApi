@@ -29,8 +29,14 @@ public class PostEntity {
     @Column(nullable = false, unique = true)
     private String slug;
 
+    @Column(nullable = false, name = "short")
+    private String shortDescription;
+
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
+
+    @Column(nullable = false)
+    private String thumbnail;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

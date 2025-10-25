@@ -61,8 +61,8 @@ public class PostController {
 
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<PostDto> createPost(
-            @ModelAttribute @Valid @NotNull CreatePostRequest createPostRequest,
-            @RequestAttribute UUID userId
+            @ModelAttribute @Valid @NotNull final CreatePostRequest createPostRequest,
+            @RequestAttribute final UUID userId
     ) {
         final PostDto postDto = postService.createPost(createPostRequest.post(), userId);
 
