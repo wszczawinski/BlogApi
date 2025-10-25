@@ -22,8 +22,8 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Create directories with proper permissions
-RUN mkdir -p /app/logs /app/media && \
-    chown -R www-data:www-data /app/media && \
+RUN mkdir -p /app/logs /app/resources && \
+    chown -R www-data:www-data /app/resources && \
     chmod -R 755 /app/media
 
 ENV SERVER_PORT=${SERVER_PORT} \

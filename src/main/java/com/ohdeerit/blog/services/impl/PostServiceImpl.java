@@ -90,7 +90,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto createPost(CreatePostDto post, UUID userId) {
+    public PostDto createPost(final CreatePostDto post, final UUID userId) {
         final CategoryEntity categoryEntity = categoryService.getCategory(post.categoryId());
         final UserEntity userEntity = userService.getUser(userId);
 
@@ -114,6 +114,8 @@ public class PostServiceImpl implements PostService {
         newPost.setContent(post.content());
         newPost.setStatus(post.status());
         newPost.setReadingTime(calculateReadTime(post.content()));
+        newPost.setThumbnail(thumbnailFileName);
+        newPost.setShortDescription(post.shortDescription());
         if (tagEntities != null) {
             newPost.setTags(new HashSet<>(tagEntities));
         }

@@ -11,6 +11,8 @@ public record PostDto(
         String title,
         String slug,
         String content,
+        String shortDescription,
+        String thumbnail,
         AuthorDto author,
         PostStatus status,
         MediaDto media,
