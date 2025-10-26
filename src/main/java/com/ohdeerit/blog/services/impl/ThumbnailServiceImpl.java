@@ -50,6 +50,14 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         } else {
             log.info("[ThumbnailServiceImpl.init] Upload directory already exists: {}", uploadPath);
         }
+
+        Path thumbnailPath = uploadPath.resolve("thumbnail");
+        if (!Files.exists(thumbnailPath)) {
+            Files.createDirectories(thumbnailPath);
+            log.info("[ThumbnailServiceImpl.init] Created thumbnail directory: {}", thumbnailPath);
+        } else {
+            log.info("[ThumbnailServiceImpl.init] Thumbnail directory already exists: {}", thumbnailPath);
+        }
     }
 
     @Override
@@ -77,11 +85,14 @@ public class ThumbnailServiceImpl implements ThumbnailService {
 
             final String fullHashedFileName = hashedFileName + "." + extension;
 
-            final Path mediaPath = Paths.get(uploadDirectory).resolve(fullHashedFileName);
+            final Path thumbnailPath = Paths.get(uploadDirectory).resolve("thumbnail").resolve(fullHashedFileName);
+            ImageIO.write(thumbnail, extension, thumbnailPath.toFile());
 
-            ImageIO.write(thumbnail, extension, mediaPath.toFile());
+            final Path originalPath = Paths.get(uploadDirectory).resolve(originalFileName);
+            Files.write(originalPath, originalFile.getBytes());
 
             log.info("[ThumbnailServiceImpl.createThumbnail] Created thumbnail: {} -> {}", originalFileName, fullHashedFileName);
+            log.info("[ThumbnailServiceImpl.createThumbnail] Saved original file: {}", originalFileName);
             return fullHashedFileName;
 
         } catch (Exception e) {
