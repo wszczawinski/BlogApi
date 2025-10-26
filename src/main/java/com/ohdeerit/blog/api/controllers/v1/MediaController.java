@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import jakarta.validation.constraints.NotNull;
 import com.ohdeerit.blog.models.dtos.MediaDto;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.Sort;
@@ -32,7 +33,7 @@ public class MediaController {
 
     @GetMapping
     public ResponseEntity<SliceResponse<MediaDto>> getMedia(
-            @RequestParam(defaultValue = "1") int page
+            @RequestParam(defaultValue = "1") @NotNull final int page
     ) {
         Sort sort = Sort.by(Sort.Direction.DESC, "id");
         Pageable pageable = PageRequest.of(page - 1, mediaPerPage, sort);
@@ -43,7 +44,7 @@ public class MediaController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<MediaDto> createMedia(@ModelAttribute @Valid CreateMediaRequest request) {
+    public ResponseEntity<MediaDto> createMedia(@ModelAttribute @Valid @NotNull final CreateMediaRequest request) {
         MediaDto createdMedia = mediaService.createMedia(request.media());
 
         return new ResponseEntity<>(createdMedia, HttpStatus.CREATED);

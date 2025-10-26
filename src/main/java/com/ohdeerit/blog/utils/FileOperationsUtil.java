@@ -29,44 +29,45 @@ public class FileOperationsUtil {
         return LocalDateTime.now().format(FOLDER_NAME_FORMATTER);
     }
 
-    public static Path createMediaDirectory(String uploadDirectory, String folderName) throws IOException {
-        Path uploadRoot = Paths.get(uploadDirectory).toAbsolutePath().normalize();
-        Path mediaDirectory = uploadRoot.resolve(folderName).normalize();
+    public static Path createMediaDirectory(final String uploadDirectory, final String folderName) throws IOException {
+        final Path uploadMediaDirectory = Paths.get(uploadDirectory);
+        final Path mediaDirectory = uploadMediaDirectory.resolve(folderName).normalize();
 
-        if (!mediaDirectory.startsWith(uploadRoot)) {
+        if (!mediaDirectory.startsWith(uploadMediaDirectory)) {
             throw new SecurityException("Directory traversal attempt detected");
         }
 
         try {
             Files.createDirectories(mediaDirectory);
-            log.debug("Created media directory: {}", mediaDirectory);
+            log.debug("[FileOperationsUtil.createMediaDirectory] Created media directory: {}", mediaDirectory);
             return mediaDirectory;
         } catch (IOException e) {
             throw new IOException("Failed to create media directory: " + mediaDirectory, e);
         }
     }
 
-    public static ProcessedFileInfo saveFileToDirectory(MultipartFile file, Path mediaDirectory) throws IOException {
-        String originalFilename = file.getOriginalFilename();
-        String cleanFilename = cleanFilename(originalFilename);
+    public static ProcessedFileInfo saveFileToDirectory(final MultipartFile file, final Path mediaDirectory) throws IOException {
+        final String originalFilename = file.getOriginalFilename();
+        final String cleanFilename = cleanFilename(originalFilename);
 
-        Path filePath = mediaDirectory.resolve(cleanFilename).normalize();
+        final Path filePath = mediaDirectory.resolve(cleanFilename).normalize();
+
         if (!filePath.startsWith(mediaDirectory)) {
             throw new SecurityException("File path traversal attempt detected");
         }
 
         try {
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            log.debug("Saved file: {} -> {}", originalFilename, cleanFilename);
+            log.debug("[FileOperationsUtil.saveFileToDirectory] Saved file: {} -> {}", originalFilename, cleanFilename);
 
             return new ProcessedFileInfo(cleanFilename, (int) file.getSize());
-
         } catch (IOException e) {
             throw new IOException("Failed to save file: " + originalFilename, e);
         }
     }
 
-    public static ProcessedFilesResult processFiles(MultipartFile[] files, String uploadDirectory, String folderName) {
+    public static ProcessedFilesResult processFiles(final MultipartFile[] files,
+                                                    final String uploadDirectory, final String folderName) {
         Path mediaDirectory = null;
         List<ProcessedFileInfo> processedFiles = new ArrayList<>();
 
@@ -74,7 +75,7 @@ public class FileOperationsUtil {
             mediaDirectory = createMediaDirectory(uploadDirectory, folderName);
 
             for (MultipartFile file : files) {
-                ProcessedFileInfo fileInfo = saveFileToDirectory(file, mediaDirectory);
+                final ProcessedFileInfo fileInfo = saveFileToDirectory(file, mediaDirectory);
                 processedFiles.add(fileInfo);
             }
 
@@ -92,11 +93,39 @@ public class FileOperationsUtil {
         }
     }
 
-    public static void cleanupFiles(ProcessedFilesResult processedFiles) {
+    public static String getFileExtension(final String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            throw new IllegalArgumentException("File name cannot be null or empty");
+        }
+
+        final int lastDotIndex = fileName.lastIndexOf('.');
+
+        if (lastDotIndex == -1 || lastDotIndex == fileName.length() - 1) {
+            throw new IllegalArgumentException("File must have an extension");
+        }
+
+        return fileName.substring(lastDotIndex + 1).toLowerCase();
+    }
+
+    public static String getFileNameWithoutExtension(final String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            throw new IllegalArgumentException("File name cannot be null or empty");
+        }
+
+        final int lastDotIndex = fileName.lastIndexOf('.');
+
+        if (lastDotIndex == -1) {
+            throw new IllegalArgumentException("File must have an extension");
+        }
+
+        return fileName.substring(0, lastDotIndex);
+    }
+
+    public static void cleanupFiles(final ProcessedFilesResult processedFiles) {
         if (processedFiles != null && processedFiles.mediaDirectory() != null) {
             try {
                 for (ProcessedFileInfo fileInfo : processedFiles.processedFiles()) {
-                    Path filePath = processedFiles.mediaDirectory().resolve(fileInfo.filename());
+                    final Path filePath = processedFiles.mediaDirectory().resolve(fileInfo.filename());
                     Files.deleteIfExists(filePath);
                 }
 
@@ -107,7 +136,7 @@ public class FileOperationsUtil {
         }
     }
 
-    public static void cleanupDirectory(Path directory) {
+    public static void cleanupDirectory(final Path directory) {
         if (directory != null && Files.exists(directory)) {
             try {
                 if (Files.list(directory).findAny().isEmpty()) {
@@ -122,7 +151,7 @@ public class FileOperationsUtil {
         }
     }
 
-    public static void validateFiles(MultipartFile[] files, long maxFileSize, int maxFiles) {
+    public static void validateFiles(final MultipartFile[] files, final long maxFileSize, final int maxFiles) {
         if (files == null || files.length == 0) {
             throw new IllegalArgumentException("At least one file is required");
         }
@@ -142,7 +171,7 @@ public class FileOperationsUtil {
         }
     }
 
-    private static void validateSingleFile(MultipartFile file, long maxFileSize) {
+    private static void validateSingleFile(final MultipartFile file, final long maxFileSize) {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("File cannot be empty");
         }
@@ -155,20 +184,16 @@ public class FileOperationsUtil {
         }
 
         String filename = file.getOriginalFilename();
-        if (filename == null || filename.trim().isEmpty()) {
-            throw new IllegalArgumentException("File must have a valid name");
-        }
-
-        if (filename.length() > MAX_FILENAME_LENGTH) {
-            throw new IllegalArgumentException("Filename is too long (max " + MAX_FILENAME_LENGTH + " characters)");
-        }
-
         validateFilenameSecurity(filename);
         validateFileExtension(filename);
         validateMimeType(file);
     }
 
-    private static void validateFilenameSecurity(String filename) {
+    public static void validateFilenameSecurity(final String filename) {
+        if (filename == null || filename.trim().isEmpty()) {
+            throw new IllegalArgumentException("File must have a valid name");
+        }
+
         if (filename.contains("..") || filename.contains("/") || filename.contains("\\")) {
             throw new IllegalArgumentException("Invalid filename: path traversal detected");
         }
@@ -176,15 +201,16 @@ public class FileOperationsUtil {
         if (filename.startsWith(".") || filename.endsWith(".")) {
             throw new IllegalArgumentException("Invalid filename: cannot start or end with dot");
         }
+
+        if (filename.length() > MAX_FILENAME_LENGTH) {
+            throw new IllegalArgumentException("Filename is too long (max " + MAX_FILENAME_LENGTH + " characters)");
+        }
     }
 
-    private static void validateFileExtension(String filename) {
-        String extension = getFileExtension(filename).toLowerCase();
-        if (extension.isEmpty()) {
-            throw new IllegalArgumentException("File must have an extension");
-        }
+    private static void validateFileExtension(final String filename) {
+        final String extension = getFileExtension(filename);
 
-        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+        if (!ALLOWED_EXTENSIONS.contains(extension.toLowerCase())) {
             throw new IllegalArgumentException(
                     String.format("File type '%s' not allowed. Allowed types: %s",
                             extension, String.join(", ", ALLOWED_EXTENSIONS))
@@ -192,8 +218,8 @@ public class FileOperationsUtil {
         }
     }
 
-    private static void validateMimeType(MultipartFile file) {
-        String contentType = file.getContentType();
+    private static void validateMimeType(final MultipartFile file) {
+        final String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_MIME_TYPES.contains(contentType.toLowerCase())) {
             throw new IllegalArgumentException(
                     String.format("MIME type '%s' not allowed", contentType)
@@ -201,26 +227,22 @@ public class FileOperationsUtil {
         }
     }
 
-    private static String getFileExtension(String filename) {
-        int lastDotIndex = filename.lastIndexOf('.');
-        return lastDotIndex == -1 ? "" : filename.substring(lastDotIndex + 1);
-    }
+    private static String cleanFilename(final String originalFilename) {
 
-    private static String cleanFilename(String originalFilename) {
-        if (originalFilename == null || originalFilename.trim().isEmpty()) {
-            return "file.unknown";
-        }
+        final int lastDotIndex = originalFilename.lastIndexOf('.');
+        final String nameWithoutExt = originalFilename.substring(0, lastDotIndex);
+        final String extension = originalFilename.substring(lastDotIndex + 1).toLowerCase();
 
-        String cleanName = originalFilename
+        String cleanName = nameWithoutExt
                 .replaceAll("[^a-zA-Z0-9._-]", "_")
                 .replaceAll("_{2,}", "_")
                 .replaceAll("^_+|_+$", "");
 
         if (cleanName.isEmpty()) {
-            cleanName = "file.unknown";
+            cleanName = "file_" + System.currentTimeMillis();
         }
 
-        return cleanName;
+        return cleanName + "." + extension;
     }
 
     public record ProcessedFilesResult(Path mediaDirectory, List<ProcessedFileInfo> processedFiles) {
