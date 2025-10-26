@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.10</version>
+		<version>3.4.11</version>
 		<relativePath/>
 	</parent>
 	<groupId>com.ohdeerit</groupId>
@@ -44,7 +44,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<version>3.4.10</version>
+			<version>3.4.11</version>
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
@@ -71,7 +71,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
-			<version>3.4.10</version>
+			<version>3.4.11</version>
 		</dependency>
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
