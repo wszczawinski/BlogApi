@@ -25,7 +25,7 @@ public class MediaEntity {
     private String name;
 
     @Column(name = "short", nullable = false)
-    private String short_;
+    private String shortDescription;
 
     @Column(name = "short_slug", nullable = false, length = 120)
     private String shortSlug;
@@ -53,7 +53,7 @@ public class MediaEntity {
         this.updatedAt = LocalDateTime.now();
 
         if (this.shortSlug == null || this.shortSlug.trim().isEmpty()) {
-            this.shortSlug = generateSlug(this.short_);
+            this.shortSlug = generateSlug(this.shortDescription);
         }
 
     }
@@ -94,7 +94,7 @@ public class MediaEntity {
                 && status == that.status
                 && Objects.equals(id, that.id)
                 && Objects.equals(name, that.name)
-                && Objects.equals(short_, that.short_)
+                && Objects.equals(shortDescription, that.shortDescription)
                 && Objects.equals(shortSlug, that.shortSlug)
                 && Objects.equals(folder, that.folder)
                 && Objects.equals(updatedAt, that.updatedAt)
@@ -103,6 +103,6 @@ public class MediaEntity {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, short_, shortSlug, folder, type, status, updatedAt, mediaFiles);
+        return Objects.hash(id, name, shortDescription, shortSlug, folder, type, status, updatedAt, mediaFiles);
     }
 }

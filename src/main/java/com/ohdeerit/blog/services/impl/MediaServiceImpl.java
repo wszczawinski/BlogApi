@@ -7,6 +7,7 @@ import com.ohdeerit.blog.services.interfaces.MediaService;
 import com.ohdeerit.blog.repositories.MediaFileRepository;
 import org.springframework.beans.factory.annotation.Value;
 import com.ohdeerit.blog.models.entities.MediaFileEntity;
+import org.springframework.web.multipart.MultipartFile;
 import com.ohdeerit.blog.repositories.MediaRepository;
 import com.ohdeerit.blog.models.entities.MediaEntity;
 import com.ohdeerit.blog.models.dtos.CreateMediaDto;
@@ -39,30 +40,31 @@ public class MediaServiceImpl implements MediaService {
     private int maxFiles;
 
     @Override
-    public MediaEntity getMedia(Integer id) {
+    public MediaEntity getMedia(final Integer id) {
+
         return mediaRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("No media found with id: " + id));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Slice<MediaDto> getMedia(Pageable pageable) {
-        Slice<MediaEntity> mediaEntities = mediaRepository.findAllBy(pageable);
+    public Slice<MediaDto> getMedia(final Pageable pageable) {
+        final Slice<MediaEntity> mediaEntities = mediaRepository.findAllBy(pageable);
 
-        return mediaEntities.map(mediaMapper::map);
+        return mediaMapper.mapToMediaDtos(mediaEntities);
     }
 
     @Override
     @Transactional
-    public MediaDto createMedia(CreateMediaDto createMediaDto) {
-        log.debug("Creating media with short description: {}", createMediaDto.shortDescription());
+    public MediaDto createMedia(final CreateMediaDto createMediaDto) {
+        final MultipartFile[] files = createMediaDto.files();
 
-        FileOperationsUtil.validateFiles(createMediaDto.files(), maxFileSize, maxFiles);
+        FileOperationsUtil.validateFiles(files, maxFileSize, maxFiles);
 
         final String folderName = FileOperationsUtil.generateFolderName();
 
         final ProcessedFilesResult processedFiles = FileOperationsUtil.processFiles(
-                createMediaDto.files(), uploadDirectory, folderName
+                files, uploadDirectory, folderName
         );
 
         try {
@@ -74,29 +76,29 @@ public class MediaServiceImpl implements MediaService {
         }
     }
 
-    private MediaDto saveToDatabase(CreateMediaDto createMediaDto, String folderName, ProcessedFilesResult processedFiles) {
-        MediaEntity mediaEntity = mediaMapper.map(createMediaDto);
-        mediaEntity.setFolder(folderName);
-        MediaEntity savedMedia = mediaRepository.save(mediaEntity);
+    private MediaDto saveToDatabase(final CreateMediaDto createMediaDto, final String folderName,
+                                    final ProcessedFilesResult processedFiles) {
+        final MediaEntity mediaEntity = mediaMapper.map(createMediaDto, folderName);
 
-        log.debug("Saved media entity with ID: {}", savedMedia.getId());
+        final MediaEntity savedMedia = mediaRepository.save(mediaEntity);
 
-        List<MediaFileEntity> mediaFileEntities = processedFiles.processedFiles().stream()
+        log.debug("[MediaServiceImpl.saveToDatabase] Saved media entity with ID: {}", savedMedia.getId());
+
+        final List<MediaFileEntity> mediaFileEntities = processedFiles.processedFiles().stream()
                 .map(fileInfo -> MediaFileEntity.builder()
                         .mediaId(savedMedia.getId())
                         .file(fileInfo.filename())
-                        .short_("")
+                        .shortDescription("")
                         .size(fileInfo.size())
                         .position(0)
                         .build())
                 .toList();
 
-        List<MediaFileEntity> savedMediaFiles = mediaFileRepository.saveAll(mediaFileEntities);
-        savedMedia.setMediaFiles(savedMediaFiles);
+        final List<MediaFileEntity> savedMediaFiles = mediaFileRepository.saveAll(mediaFileEntities);
 
-        log.info("Successfully created media (ID: {}) with {} files in folder '{}'",
+        log.info("[MediaServiceImpl.saveToDatabase] Successfully created media (ID: {}) with {} files in folder '{}'",
                 savedMedia.getId(), processedFiles.processedFiles().size(), folderName);
 
-        return mediaMapper.map(savedMedia);
+        return mediaMapper.map(savedMedia, savedMediaFiles);
     }
 }

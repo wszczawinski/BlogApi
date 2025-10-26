@@ -30,42 +30,14 @@ public class ThumbnailUtil {
         }
     }
 
-    public static String getFileExtension(final String fileName) {
-        if (fileName == null || fileName.isEmpty()) {
-            throw new IllegalArgumentException("File name cannot be null or empty");
-        }
-
-        final int lastDotIndex = fileName.lastIndexOf('.');
-
-        if (lastDotIndex == -1 || lastDotIndex == fileName.length() - 1) {
-            throw new IllegalArgumentException("File must have an extension");
-        }
-
-        return fileName.substring(lastDotIndex + 1).toLowerCase();
-    }
-
-    public static String getFileNameWithoutExtension(final String fileName) {
-        if (fileName == null || fileName.isEmpty()) {
-            throw new IllegalArgumentException("File name cannot be null or empty");
-        }
-
-        final int lastDotIndex = fileName.lastIndexOf('.');
-
-        if (lastDotIndex == -1) {
-            throw new IllegalArgumentException("File must have an extension");
-        }
-
-        return fileName.substring(0, lastDotIndex);
-    }
-
     public static void validateThumbnailParameters(final int width, final int height,
                                                    final ThumbnailMethod method, final int percent) {
-        if (width <= 0 || width > 2000) {
-            throw new IllegalArgumentException("Width must be between 1 and 2000 pixels");
+        if (width <= 0) {
+            throw new IllegalArgumentException("Width must be greater than 0");
         }
 
-        if (height <= 0 || height > 2000) {
-            throw new IllegalArgumentException("Height must be between 1 and 2000 pixels");
+        if (height <= 0) {
+            throw new IllegalArgumentException("Height must be greater than 0");
         }
 
         if (method == null) {

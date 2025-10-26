@@ -23,7 +23,7 @@ public class MediaFileEntity {
     private String file;
 
     @Column(name = "short", nullable = false)
-    private String short_;
+    private String shortDescription;
 
     @Column(nullable = false)
     private Integer size;

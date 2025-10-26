@@ -1,5 +1,6 @@
 package com.ohdeerit.blog.services.impl;
 
+import static com.ohdeerit.blog.utils.FileOperationsUtil.getFileExtension;
 import static com.ohdeerit.blog.utils.ThumbnailUtil.*;
 
 import com.ohdeerit.blog.services.interfaces.ThumbnailService;
@@ -78,7 +79,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
 
             final Path mediaPath = Paths.get(uploadDirectory).resolve(fullHashedFileName);
 
-            ImageIO.write(thumbnail, extension.toLowerCase(), mediaPath.toFile());
+            ImageIO.write(thumbnail, extension, mediaPath.toFile());
 
             log.info("[ThumbnailServiceImpl.createThumbnail] Created thumbnail: {} -> {}", originalFileName, fullHashedFileName);
             return fullHashedFileName;
