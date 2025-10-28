@@ -188,7 +188,7 @@ easy access and backup on the host system.
 #### Volume Locations
 
 - **Logs**: `/app/logs` (container) → `/var/dokploy/blog-api/logs` (host)
-- **Media**: `/app/media` (container) → `/var/dokploy/blog-api/media` (host)
+- **Resources**: `/app/resources` (container) → `/var/dokploy/blog-api/resources` (host)
 
 #### Setting Up Volumes on VPS
 
@@ -196,15 +196,18 @@ Before deploying, create the necessary directories on your VPS:
 
 ```bash
 # Create directories
-sudo mkdir -p /var/dokploy/blog-api/logs 
-sudo mkdir -p /var/dokploy/blog-api/media
+sudo mkdir -p /var/dokploy/blog-api/logs
+sudo mkdir -p /var/dokploy/blog-api/resources
 
 # Set proper permissions for www-data user (UID 33)
-sudo chown -R 33:33 /var/dokploy/blog-api/media 
-sudo chmod -R 755 /var/dokploy/blog-api/media
+sudo chown -R 33:33 /var/dokploy/blog-api/resources
+sudo chmod -R 755 /var/dokploy/blog-api/resources
 
 # Logs directory permissions
 sudo chmod -R 755 /var/dokploy/blog-api/logs
+
+# Set proper permissions (if needed)
+chmod -R 755 ./resources
 ```
 
 #### Configuring Mounts in Dokploy
@@ -217,11 +220,11 @@ In Dokploy UI, navigate to your application's **Volumes / Mounts** section and a
 - Host Path: `/var/dokploy/blog-api/logs`
 - Mount Path (container): `/app/logs`
 
-**Mount #2 - Media:**
+**Mount #2 - Resources:**
 
 - Mount Type: `Bind Mount`
-- Host Path: `/var/dokploy/blog-api/media`
-- Mount Path (container): `/app/media`
+- Host Path: `/var/dokploy/blog-api/resources`
+- Mount Path (container): `/app/resources`
 
 #### Backup and Restore
 
@@ -231,8 +234,8 @@ In Dokploy UI, navigate to your application's **Volumes / Mounts** section and a
 # Full backup
 tar -czf blog-backup-$(date +%Y%m%d).tar.gz /var/dokploy/blog-api/
 
-# Media only
-tar -czf blog-media-$(date +%Y%m%d).tar.gz /var/dokploy/blog-api/media/
+# Resources only
+tar -czf blog-resources-$(date +%Y%m%d).tar.gz /var/dokploy/blog-api/resources/
 
 # Logs only
 tar -czf blog-logs-$(date +%Y%m%d).tar.gz /var/dokploy/blog-api/logs/
@@ -240,7 +243,7 @@ tar -czf blog-logs-$(date +%Y%m%d).tar.gz /var/dokploy/blog-api/logs/
 
 **Restore from backup:**
 
-```bash 
+```bash
 # Stop the container first (via Dokploy UI)
 
 # Restore files
@@ -254,8 +257,8 @@ tar -xzf blog-backup-20251023.tar.gz -C /
 Since bind mounts are used, you can directly access files on the VPS:
 
 ```bash
-# List media files
-ls -la /var/dokploy/blog-api/media/
+# List resource files
+ls -la /var/dokploy/blog-api/resources/
 
 # View recent logs
 tail -f /var/dokploy/blog-api/logs/app.log
@@ -277,7 +280,7 @@ Create a `.env` file based on `.env.example` and configure all required environm
 
 ### Notes
 
-- The Dockerfile creates mount point directories (`/app/logs` and `/app/media`) but does **not** declare them as
+- The Dockerfile creates mount point directories (`/app/logs` and `/app/resources`) but does **not** declare them as
   Docker-managed volumes
 - Volume management is handled at deployment time via Dokploy's bind mount configuration
 - This approach ensures data is stored in accessible locations on the host for easy backup and management

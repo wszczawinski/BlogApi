@@ -24,7 +24,7 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Create directories with proper permissions
 RUN mkdir -p /app/logs /app/resources && \
     chown -R www-data:www-data /app/resources && \
-    chmod -R 755 /app/media
+    chmod -R 755 /app/resources
 
 ENV SERVER_PORT=${SERVER_PORT} \
     SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL} \
@@ -44,5 +44,5 @@ ENV SERVER_PORT=${SERVER_PORT} \
     APP_THUMBNAIL_UPLOAD_DIR=${APP_THUMBNAIL_UPLOAD_DIR} \
     APP_PAGINATION_POSTS_PER_PAGE=${APP_PAGINATION_POSTS_PER_PAGE}
 
-EXPOSE 80 8080
+EXPOSE 80
 ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
