@@ -28,27 +28,22 @@ services:
     ports:
       - "8888:8080"
 
-#  app:
-#    build: .
-#    container_name: blog-app
-#    networks:
-#      - blognet
-#    depends_on:
-#      - db
-#    env_file:
-#      - .env
-#    ports:
-#      - "5174:80"
-#      - "8080:8080"
-#    volumes:
-#      - blog-media:/app/media
-#      - blog-logs:/app/logs
-#    restart: unless-stopped
+  app:
+    build: .
+    container_name: blog-app
+    networks:
+      - blognet
+    depends_on:
+      - db
+    env_file:
+      - .env
+    ports:
+      - "5174:80"
+    volumes:
+      - ./resources:/app/resources
+      - ./logs:/app/logs
+    restart: unless-stopped
 
 networks:
   blognet:
     driver: bridge
-
-#volumes:
-#  blog-media:
-#  blog-logs:

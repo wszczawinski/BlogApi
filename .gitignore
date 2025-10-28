@@ -4,7 +4,7 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 data
-app
+resources
 logs
 .env
 .DS_Store
