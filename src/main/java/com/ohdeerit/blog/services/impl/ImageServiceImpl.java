@@ -1,78 +1,41 @@
 package com.ohdeerit.blog.services.impl;
 
-import static com.ohdeerit.blog.utils.FileOperationsUtil.getFileExtension;
+import static com.ohdeerit.blog.utils.FileOperationsUtil.*;
 import static com.ohdeerit.blog.utils.ThumbnailUtil.*;
 
-import com.ohdeerit.blog.services.interfaces.ThumbnailService;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.validation.annotation.Validated;
+import com.ohdeerit.blog.services.interfaces.ImageService;
 import org.springframework.web.multipart.MultipartFile;
 import com.ohdeerit.blog.models.enums.ThumbnailMethod;
 import net.coobird.thumbnailator.geometry.Positions;
+import com.ohdeerit.blog.models.dtos.SaveImageDto;
 import org.springframework.stereotype.Service;
 import net.coobird.thumbnailator.Thumbnails;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import javax.imageio.ImageIO;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.awt.*;
 
 @Slf4j
 @Service
-public class ThumbnailServiceImpl implements ThumbnailService {
-
-    @Value("${app.thumbnail.upload-dir}")
-    private String uploadDirectory;
-
-    @Value("${app.thumbnail.default-width}")
-    private int defaultWidth;
-
-    @Value("${app.thumbnail.default-height}")
-    private int defaultHeight;
-
-    @Value("${app.thumbnail.default-method}")
-    private String defaultMethodStr;
-
-    @Value("${app.thumbnail.default-percent}")
-    private int defaultPercent;
-
-    @PostConstruct
-    private void init() throws IOException {
-        Path uploadPath = Paths.get(uploadDirectory);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-            log.info("[ThumbnailServiceImpl.init] Created upload directory: {}", uploadPath);
-        } else {
-            log.info("[ThumbnailServiceImpl.init] Upload directory already exists: {}", uploadPath);
-        }
-
-        Path thumbnailPath = uploadPath.resolve("thumbnail");
-        if (!Files.exists(thumbnailPath)) {
-            Files.createDirectories(thumbnailPath);
-            log.info("[ThumbnailServiceImpl.init] Created thumbnail directory: {}", thumbnailPath);
-        } else {
-            log.info("[ThumbnailServiceImpl.init] Thumbnail directory already exists: {}", thumbnailPath);
-        }
-    }
+@Validated
+public class ImageServiceImpl implements ImageService {
 
     @Override
-    public String create(final MultipartFile originalFile) {
-        if (originalFile.isEmpty()) {
-            throw new IllegalArgumentException("Thumbnail file must not be empty");
-        }
-
-        return createThumbnail(originalFile, defaultWidth, defaultHeight,
-                ThumbnailMethod.fromString(defaultMethodStr), defaultPercent);
-    }
-
-    public String createThumbnail(final MultipartFile originalFile, final int width, final int height,
-                                  final ThumbnailMethod method, final int percent) {
+    public String saveImage(final SaveImageDto saveImageDto) {
         try {
+            final MultipartFile originalFile = saveImageDto.originalFile();
+            final Path uploadDirectoryPath = saveImageDto.uploadDirectory();
+            final int width = saveImageDto.width();
+            final int height = saveImageDto.height();
+            final ThumbnailMethod method = saveImageDto.method();
+            final int percent = saveImageDto.percent();
+            
             final String originalFileName = originalFile.getOriginalFilename();
             if (originalFileName == null) {
                 throw new IllegalArgumentException("Original filename cannot be null");
@@ -85,25 +48,27 @@ public class ThumbnailServiceImpl implements ThumbnailService {
 
             final String fullHashedFileName = hashedFileName + "." + extension;
 
-            final Path thumbnailPath = Paths.get(uploadDirectory).resolve("thumbnail").resolve(fullHashedFileName);
+            final Path thumbnailPath = uploadDirectoryPath.resolve("thumbnail").resolve(fullHashedFileName);
             ImageIO.write(thumbnail, extension, thumbnailPath.toFile());
 
-            final Path originalPath = Paths.get(uploadDirectory).resolve(originalFileName);
+            log.info("[ThumbnailServiceImpl.createThumbnail] Created thumbnail: {} -> {}",
+                    originalFileName, fullHashedFileName);
+
+            final Path originalPath = uploadDirectoryPath.resolve(originalFileName);
             Files.write(originalPath, originalFile.getBytes());
 
-            log.info("[ThumbnailServiceImpl.createThumbnail] Created thumbnail: {} -> {}", originalFileName, fullHashedFileName);
             log.info("[ThumbnailServiceImpl.createThumbnail] Saved original file: {}", originalFileName);
-            return fullHashedFileName;
 
+            return originalFileName;
         } catch (Exception e) {
-            log.error("[ThumbnailServiceImpl.createThumbnail] Failed to create thumbnail for file: {}", originalFile.getOriginalFilename(), e);
+            log.error("[ThumbnailServiceImpl.createThumbnail] Failed to create thumbnail for file: {}",
+                    saveImageDto.originalFile().getOriginalFilename(), e);
             throw new RuntimeException("Failed to create thumbnail", e);
         }
     }
 
-    private BufferedImage createThumbnailImage(final MultipartFile file, final int width, final int height, final ThumbnailMethod method, final int percent) throws IOException {
-
-        validateThumbnailParameters(width, height, method, percent);
+    private BufferedImage createThumbnailImage(final MultipartFile file, final int width, final int height,
+                                               final ThumbnailMethod method, final int percent) throws IOException {
 
         final BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
 
@@ -114,7 +79,7 @@ public class ThumbnailServiceImpl implements ThumbnailService {
         return switch (method) {
             case CROP -> cropImage(originalImage, width, height);
             case FILL -> fillImage(originalImage, width, height);
-            case RESIZE -> resizeImage(originalImage, width, height);
+            case RESIZE, ADAPTIVE -> resizeImage(originalImage, width, height);
             case PERCENT -> resizePercentImage(originalImage, percent);
         };
     }

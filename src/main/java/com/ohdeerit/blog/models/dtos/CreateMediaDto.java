@@ -15,6 +15,7 @@ public record CreateMediaDto(
 
         @NotNull(message = "Files are required")
         @Size(min = 1, message = "At least one file is required")
+        @Size(max = 100, message = "You can only upload up to 100 files")
         MultipartFile[] files
 ) {
 }

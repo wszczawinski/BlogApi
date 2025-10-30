@@ -7,7 +7,6 @@ import com.ohdeerit.blog.models.dtos.MediaDto;
 import org.springframework.data.domain.Slice;
 
 public interface MediaService {
-
     MediaDto createMedia(CreateMediaDto createMediaDto);
 
     Slice<MediaDto> getMedia(Pageable pageable);
