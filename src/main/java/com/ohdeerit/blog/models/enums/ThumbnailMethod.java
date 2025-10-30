@@ -11,6 +11,7 @@ public enum ThumbnailMethod {
     CROP("crop"),
     FILL("fill"),
     RESIZE("resize"),
+    ADAPTIVE("adaptiveResize"),
     PERCENT("percent");
 
     @JsonValue

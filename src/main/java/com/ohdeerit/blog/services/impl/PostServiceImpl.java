@@ -3,8 +3,11 @@ package com.ohdeerit.blog.services.impl;
 import org.springframework.transaction.annotation.Transactional;
 import com.ohdeerit.blog.services.mappers.PostServiceMapper;
 import com.ohdeerit.blog.repositories.PostMediaRepository;
+import org.springframework.beans.factory.annotation.Value;
+import com.ohdeerit.blog.models.enums.ThumbnailMethod;
 import com.ohdeerit.blog.repositories.PostRepository;
 import com.ohdeerit.blog.models.dtos.UpdatePostDto;
+import com.ohdeerit.blog.models.dtos.SaveImageDto;
 import com.ohdeerit.blog.models.dtos.CreatePostDto;
 import jakarta.persistence.EntityNotFoundException;
 import com.ohdeerit.blog.models.enums.PostStatus;
@@ -14,10 +17,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Slice;
 import com.ohdeerit.blog.models.dtos.PostDto;
 import com.ohdeerit.blog.models.entities.*;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.stream.Collectors;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.UUID;
 import java.util.List;
@@ -28,11 +36,45 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
+    @Value("${app.post.thumbnail.upload-dir}")
+    private String uploadDirectory;
+
+    @Value("${app.post.thumbnail.width}")
+    private int defaultWidth;
+
+    @Value("${app.post.thumbnail.height}")
+    private int defaultHeight;
+
+    @Value("${app.post.thumbnail.method}")
+    private String defaultMethodStr;
+
+    @Value("${app.post.thumbnail.percent}")
+    private int defaultPercent;
+
+    @PostConstruct
+    private void init() throws IOException {
+        Path uploadPath = Paths.get(uploadDirectory);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+            log.info("[PostServiceImpl.init] Created upload directory: {}", uploadPath);
+        } else {
+            log.info("[PostServiceImpl.init] Upload directory already exists: {}", uploadPath);
+        }
+
+        Path thumbnailPath = uploadPath.resolve("thumbnail");
+        if (!Files.exists(thumbnailPath)) {
+            Files.createDirectories(thumbnailPath);
+            log.info("[PostServiceImpl.init] Created thumbnail directory: {}", thumbnailPath);
+        } else {
+            log.info("[PostServiceImpl.init] Thumbnail directory already exists: {}", thumbnailPath);
+        }
+    }
+
     private final CategoryService categoryService;
     private final UserService userService;
     private final TagService tagService;
     private final MediaService mediaService;
-    private final ThumbnailService thumbnailService;
+    private final ImageService imageService;
 
     private final PostRepository postRepository;
     private final PostMediaRepository postMediaRepository;
@@ -94,9 +136,10 @@ public class PostServiceImpl implements PostService {
         final CategoryEntity categoryEntity = categoryService.getCategory(post.categoryId());
         final UserEntity userEntity = userService.getUser(userId);
 
-        final String thumbnailFileName = thumbnailService.create(post.thumbnailFile());
-        log.info("Created thumbnail for post '{}': {}", post.title(), thumbnailFileName);
-        
+        final var saveImageDto = new SaveImageDto(post.thumbnailFile(), Paths.get(uploadDirectory),
+                defaultWidth, defaultHeight, ThumbnailMethod.fromString(defaultMethodStr), defaultPercent);
+        final String thumbnailFileName = imageService.saveImage(saveImageDto);
+
         List<TagEntity> tagEntities = null;
         if (post.tagIds() != null && !post.tagIds().isEmpty()) {
             tagEntities = tagService.getTags(post.tagIds());
@@ -125,6 +168,7 @@ public class PostServiceImpl implements PostService {
         }
 
         final PostEntity savedPost = postRepository.save(newPost);
+        log.info("[PostService.createPost] Post '{}': {}", savedPost.getId(), post.title());
 
         return postMapper.map(savedPost);
     }
