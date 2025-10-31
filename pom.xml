@@ -30,7 +30,7 @@
 		<java.version>21</java.version>
 		<org.mapstruct.version>1.6.3</org.mapstruct.version>
 		<lombok.version>1.18.36</lombok.version>
-		<tomcat.version>10.1.44</tomcat.version>
+		<tomcat.version>10.1.47</tomcat.version>
 	</properties>
 	<dependencies>
 		<dependency>
