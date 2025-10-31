@@ -9,10 +9,7 @@ import org.mapstruct.Mapper;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PostServiceMapper {
 
-    @Mapping(target = "author", source = "author")
-    @Mapping(target = "category", source = "category")
-    @Mapping(target = "tags", source = "tags")
-    @Mapping(target = "media", source = "media")
+    @Mapping(target = "thumbnail", source = "thumbnailHash")
     PostDto map(PostEntity post);
 
 }

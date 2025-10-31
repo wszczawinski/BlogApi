@@ -1,6 +1,9 @@
 package com.ohdeerit.blog.models.entities;
 
+import com.ohdeerit.blog.config.ThumbnailConstants;
+import com.ohdeerit.blog.utils.FileOperationsUtil;
 import com.ohdeerit.blog.models.enums.PostStatus;
+import com.ohdeerit.blog.utils.ThumbnailUtil;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -110,6 +113,23 @@ public class PostEntity {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public String getThumbnailHash() {
+        if (thumbnail == null || thumbnail.isEmpty()) {
+            return thumbnail;
+        }
+
+        String hash = ThumbnailUtil.generateImageMd5Hash(
+                thumbnail,
+                ThumbnailConstants.WIDTH,
+                ThumbnailConstants.HEIGHT,
+                ThumbnailConstants.METHOD,
+                ThumbnailConstants.PERCENT
+        );
+
+        String extension = FileOperationsUtil.getFileExtension(thumbnail);
+        return hash + "." + extension;
     }
 
     private String generateSlug(String title) {

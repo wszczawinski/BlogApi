@@ -2,10 +2,10 @@ package com.ohdeerit.blog.services.impl;
 
 import org.springframework.transaction.annotation.Transactional;
 import com.ohdeerit.blog.services.mappers.PostServiceMapper;
-import com.ohdeerit.blog.repositories.PostMediaRepository;
 import org.springframework.beans.factory.annotation.Value;
-import com.ohdeerit.blog.models.enums.ThumbnailMethod;
+import com.ohdeerit.blog.repositories.PostMediaRepository;
 import com.ohdeerit.blog.repositories.PostRepository;
+import com.ohdeerit.blog.config.ThumbnailConstants;
 import com.ohdeerit.blog.models.dtos.UpdatePostDto;
 import com.ohdeerit.blog.models.dtos.SaveImageDto;
 import com.ohdeerit.blog.models.dtos.CreatePostDto;
@@ -38,18 +38,6 @@ public class PostServiceImpl implements PostService {
 
     @Value("${app.post.thumbnail.upload-dir}")
     private String uploadDirectory;
-
-    @Value("${app.post.thumbnail.width}")
-    private int defaultWidth;
-
-    @Value("${app.post.thumbnail.height}")
-    private int defaultHeight;
-
-    @Value("${app.post.thumbnail.method}")
-    private String defaultMethodStr;
-
-    @Value("${app.post.thumbnail.percent}")
-    private int defaultPercent;
 
     @PostConstruct
     private void init() throws IOException {
@@ -137,7 +125,8 @@ public class PostServiceImpl implements PostService {
         final UserEntity userEntity = userService.getUser(userId);
 
         final var saveImageDto = new SaveImageDto(post.thumbnailFile(), Paths.get(uploadDirectory),
-                defaultWidth, defaultHeight, ThumbnailMethod.fromString(defaultMethodStr), defaultPercent);
+                ThumbnailConstants.WIDTH, ThumbnailConstants.HEIGHT,
+                ThumbnailConstants.METHOD, ThumbnailConstants.PERCENT);
         final String thumbnailFileName = imageService.saveImage(saveImageDto);
 
         List<TagEntity> tagEntities = null;
