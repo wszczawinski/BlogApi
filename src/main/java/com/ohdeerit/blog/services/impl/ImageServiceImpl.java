@@ -8,6 +8,7 @@ import com.ohdeerit.blog.services.interfaces.ImageService;
 import org.springframework.web.multipart.MultipartFile;
 import com.ohdeerit.blog.models.enums.ThumbnailMethod;
 import net.coobird.thumbnailator.geometry.Positions;
+import com.ohdeerit.blog.models.dtos.ThumbnailDto;
 import com.ohdeerit.blog.models.dtos.SaveImageDto;
 import org.springframework.stereotype.Service;
 import net.coobird.thumbnailator.Thumbnails;
@@ -19,6 +20,7 @@ import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.awt.*;
 
 @Slf4j
@@ -31,46 +33,47 @@ public class ImageServiceImpl implements ImageService {
         try {
             final MultipartFile originalFile = saveImageDto.originalFile();
             final Path uploadDirectoryPath = saveImageDto.uploadDirectory();
-            final int width = saveImageDto.width();
-            final int height = saveImageDto.height();
-            final ThumbnailMethod method = saveImageDto.method();
-            final int percent = saveImageDto.percent();
-            
+
             final String originalFileName = originalFile.getOriginalFilename();
-            if (originalFileName == null) {
+            if (Objects.isNull(originalFileName)) {
                 throw new IllegalArgumentException("Original filename cannot be null");
             }
 
-            final BufferedImage thumbnail = createThumbnailImage(originalFile, width, height, method, percent);
-
-            final String hashedFileName = generateImageMd5Hash(originalFileName, width, height, method, percent);
             final String extension = getFileExtension(originalFileName);
 
-            final String fullHashedFileName = hashedFileName + "." + extension;
+            for (ThumbnailDto thumbnailDto : saveImageDto.thumbnails()) {
+                final String hashedFileName = generateImageMd5Hash(originalFileName, thumbnailDto);
+                final BufferedImage thumbnail = createThumbnailImage(originalFile, thumbnailDto);
 
-            final Path thumbnailPath = uploadDirectoryPath.resolve("thumbnail").resolve(fullHashedFileName);
-            ImageIO.write(thumbnail, extension, thumbnailPath.toFile());
+                final String fullHashedFileName = hashedFileName + "." + extension;
+                final Path thumbnailPath = uploadDirectoryPath.resolve("thumbnail").resolve(fullHashedFileName);
 
-            log.info("[ThumbnailServiceImpl.createThumbnail] Created thumbnail: {} -> {}",
-                    originalFileName, fullHashedFileName);
+                ImageIO.write(thumbnail, extension, thumbnailPath.toFile());
+
+                log.info("[ThumbnailServiceImpl.createThumbnail] Created thumbnail: {} -> {}",
+                        originalFileName, fullHashedFileName);
+            }
 
             final Path originalPath = uploadDirectoryPath.resolve(originalFileName);
+
             Files.write(originalPath, originalFile.getBytes());
 
             log.info("[ThumbnailServiceImpl.createThumbnail] Saved original file: {}", originalFileName);
 
             return originalFileName;
         } catch (Exception e) {
-            log.error("[ThumbnailServiceImpl.createThumbnail] Failed to create thumbnail for file: {}",
-                    saveImageDto.originalFile().getOriginalFilename(), e);
+            log.error("[ThumbnailServiceImpl.createThumbnail] Failed to create thumbnail for file: {}", saveImageDto.originalFile().getOriginalFilename(), e);
             throw new RuntimeException("Failed to create thumbnail", e);
         }
     }
 
-    private BufferedImage createThumbnailImage(final MultipartFile file, final int width, final int height,
-                                               final ThumbnailMethod method, final int percent) throws IOException {
+    private BufferedImage createThumbnailImage(final MultipartFile file, final ThumbnailDto thumbnailDto) throws IOException {
 
         final BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
+        final int width = thumbnailDto.width();
+        final int height = thumbnailDto.height();
+        final ThumbnailMethod method = thumbnailDto.method();
+        final int percent = thumbnailDto.percent();
 
         if (originalImage == null) {
             throw new IOException("Could not read image from file");
@@ -84,28 +87,25 @@ public class ImageServiceImpl implements ImageService {
         };
     }
 
-    private BufferedImage resizeImage(final BufferedImage original, final int width, final int height) throws IOException {
-        return Thumbnails.of(original)
-                .forceSize(width, height)
-                .asBufferedImage();
+    private BufferedImage resizeImage(final BufferedImage original, final int width, final int height)
+            throws IOException {
+
+        return Thumbnails.of(original).forceSize(width, height).asBufferedImage();
     }
 
     private BufferedImage resizePercentImage(final BufferedImage original, final int percent) throws IOException {
         double scale = percent / 100.0;
 
-        return Thumbnails.of(original)
-                .scale(scale)
-                .asBufferedImage();
+        return Thumbnails.of(original).scale(scale).asBufferedImage();
     }
 
-    private BufferedImage cropImage(final BufferedImage original, final int targetWidth, final int targetHeight) throws IOException {
-        return Thumbnails.of(original)
-                .size(targetWidth, targetHeight)
-                .crop(Positions.CENTER)
-                .asBufferedImage();
+    private BufferedImage cropImage(final BufferedImage original, final int targetWidth, final int targetHeight)
+            throws IOException {
+        return Thumbnails.of(original).size(targetWidth, targetHeight).crop(Positions.CENTER).asBufferedImage();
     }
 
-    private BufferedImage fillImage(final BufferedImage original, final int targetWidth, final int targetHeight) throws IOException {
+    private BufferedImage fillImage(final BufferedImage original, final int targetWidth, final int targetHeight)
+            throws IOException {
         int originalWidth = original.getWidth();
         int originalHeight = original.getHeight();
 
@@ -116,9 +116,7 @@ public class ImageServiceImpl implements ImageService {
         int scaledWidth = (int) (originalWidth * scale);
         int scaledHeight = (int) (originalHeight * scale);
 
-        BufferedImage resized = Thumbnails.of(original)
-                .size(scaledWidth, scaledHeight)
-                .asBufferedImage();
+        BufferedImage resized = Thumbnails.of(original).size(scaledWidth, scaledHeight).asBufferedImage();
 
         BufferedImage canvas = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2d = canvas.createGraphics();

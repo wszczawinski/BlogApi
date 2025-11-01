@@ -1,6 +1,6 @@
 package com.ohdeerit.blog.models.dtos;
 
-public record ProcessedFileInfoDto(
+public record ProcessedImageInfoDto(
         String filename,
         int size
 ) {

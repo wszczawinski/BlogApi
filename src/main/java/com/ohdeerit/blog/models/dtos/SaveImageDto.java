@@ -1,11 +1,11 @@
 package com.ohdeerit.blog.models.dtos;
 
 import org.springframework.web.multipart.MultipartFile;
-import com.ohdeerit.blog.models.enums.ThumbnailMethod;
 import jakarta.validation.constraints.*;
 import jakarta.validation.Valid;
 
 import java.nio.file.Path;
+import java.util.List;
 
 public record SaveImageDto(
     @Valid 
@@ -14,19 +14,9 @@ public record SaveImageDto(
 
     @NotNull 
     Path uploadDirectory,
-    
-    @NotNull 
-    @Positive int width,
 
-    @NotNull 
-    @Positive int height,
-
-    @NotNull 
-    ThumbnailMethod method,
-
-    @NotNull 
-    @Min(1) 
-    @Max(100) 
-    int percent
+    @NotNull
+    @NotEmpty
+    List<ThumbnailDto> thumbnails
 ) {
 }

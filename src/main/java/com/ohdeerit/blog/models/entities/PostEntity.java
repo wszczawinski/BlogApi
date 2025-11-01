@@ -122,10 +122,7 @@ public class PostEntity {
 
         String hash = ThumbnailUtil.generateImageMd5Hash(
                 thumbnail,
-                ThumbnailConstants.WIDTH,
-                ThumbnailConstants.HEIGHT,
-                ThumbnailConstants.METHOD,
-                ThumbnailConstants.PERCENT
+                ThumbnailConstants.POST_THUMBNAIL
         );
 
         String extension = FileOperationsUtil.getFileExtension(thumbnail);
