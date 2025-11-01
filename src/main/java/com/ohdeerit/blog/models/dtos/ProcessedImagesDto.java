@@ -3,8 +3,8 @@ package com.ohdeerit.blog.models.dtos;
 import java.nio.file.Path;
 import java.util.List;
 
-public record ProcessedFilesDto(
+public record ProcessedImagesDto(
         Path mediaDirectory,
-        List<ProcessedFileInfoDto> processedFiles
+        List<ProcessedImageInfoDto> processedImages
 ) {
 }

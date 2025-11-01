@@ -3,14 +3,18 @@ package com.ohdeerit.blog.utils;
 import java.security.NoSuchAlgorithmException;
 import java.security.MessageDigest;
 
+import com.ohdeerit.blog.models.dtos.ThumbnailDto;
 import com.ohdeerit.blog.models.enums.ThumbnailMethod;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ThumbnailUtil {
 
-    public static String generateImageMd5Hash(final String fileName, final int width, final int height,
-                                              final ThumbnailMethod method, final int percent) {
+    public static String generateImageMd5Hash(final String fileName, final ThumbnailDto thumbnailDto) {
+        final int width = thumbnailDto.width();
+        final int height = thumbnailDto.height();
+        final ThumbnailMethod method = thumbnailDto.method();
+        final int percent = thumbnailDto.percent();
         try {
             final String input = fileName + width + height + method.getValue() + percent;
 

@@ -1,15 +1,32 @@
 package com.ohdeerit.blog.config;
 
+import com.ohdeerit.blog.models.dtos.ThumbnailDto;
 import com.ohdeerit.blog.models.enums.ThumbnailMethod;
+
+import java.util.List;
 
 public final class ThumbnailConstants {
 
     private ThumbnailConstants() {
-        // Utility class
     }
 
-    public static final int WIDTH = 220;
-    public static final int HEIGHT = 160;
-    public static final ThumbnailMethod METHOD = ThumbnailMethod.RESIZE;
-    public static final int PERCENT = 100;
+    public static final ThumbnailDto POST_THUMBNAIL = new ThumbnailDto(
+            220,
+            160,
+            ThumbnailMethod.RESIZE,
+            100
+    );
+
+    public static final List<ThumbnailDto> MEDIA_IMAGE_THUMBNAILS = List.of(
+            new ThumbnailDto(
+                    165,
+                    100,
+                    ThumbnailMethod.ADAPTIVE,
+                    100),
+            new ThumbnailDto(
+                    600,
+                    400,
+                    ThumbnailMethod.ADAPTIVE,
+                    100)
+    );
 }

@@ -2,6 +2,7 @@ package com.ohdeerit.blog.utils;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.ohdeerit.blog.models.dtos.ThumbnailDto;
 import com.ohdeerit.blog.models.enums.ThumbnailMethod;
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +16,8 @@ class ThumbnailUtilTest {
         final ThumbnailMethod method = ThumbnailMethod.ADAPTIVE;
         final int percent = 85;
 
-        final String result = ThumbnailUtil.generateImageMd5Hash(fileName, width, height, method, percent);
+        final ThumbnailDto thumbnailDto = new ThumbnailDto(width, height, method, percent);
+        final String result = ThumbnailUtil.generateImageMd5Hash(fileName, thumbnailDto);
 
         assertNotNull(result);
         assertEquals(32, result.length());

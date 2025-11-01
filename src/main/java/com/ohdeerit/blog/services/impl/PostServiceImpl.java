@@ -6,18 +6,15 @@ import org.springframework.beans.factory.annotation.Value;
 import com.ohdeerit.blog.repositories.PostMediaRepository;
 import com.ohdeerit.blog.repositories.PostRepository;
 import com.ohdeerit.blog.config.ThumbnailConstants;
-import com.ohdeerit.blog.models.dtos.UpdatePostDto;
-import com.ohdeerit.blog.models.dtos.SaveImageDto;
-import com.ohdeerit.blog.models.dtos.CreatePostDto;
 import jakarta.persistence.EntityNotFoundException;
 import com.ohdeerit.blog.models.enums.PostStatus;
 import org.springframework.data.domain.Pageable;
 import com.ohdeerit.blog.services.interfaces.*;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Slice;
-import com.ohdeerit.blog.models.dtos.PostDto;
 import com.ohdeerit.blog.models.entities.*;
 import jakarta.annotation.PostConstruct;
+import com.ohdeerit.blog.models.dtos.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -125,8 +122,7 @@ public class PostServiceImpl implements PostService {
         final UserEntity userEntity = userService.getUser(userId);
 
         final var saveImageDto = new SaveImageDto(post.thumbnailFile(), Paths.get(uploadDirectory),
-                ThumbnailConstants.WIDTH, ThumbnailConstants.HEIGHT,
-                ThumbnailConstants.METHOD, ThumbnailConstants.PERCENT);
+                List.of(ThumbnailConstants.POST_THUMBNAIL));
         final String thumbnailFileName = imageService.saveImage(saveImageDto);
 
         List<TagEntity> tagEntities = null;
