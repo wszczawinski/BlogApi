@@ -6,7 +6,7 @@ import org.mapstruct.ReportingPolicy;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, uses = MediaServiceMapper.class)
 public interface PostServiceMapper {
 
     @Mapping(target = "thumbnail", source = "thumbnailHash")
