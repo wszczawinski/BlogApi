@@ -17,7 +17,7 @@ public interface PostService {
 
     PostDto createPost(CreatePostDto post, UUID userId);
 
-    PostDto updatePost(UUID id, UpdatePostDto post, UUID userId);
+    PostDto updatePost(UpdatePostDto post, UUID userId);
 
     PostDto getPostBySlug(String slug);
 }

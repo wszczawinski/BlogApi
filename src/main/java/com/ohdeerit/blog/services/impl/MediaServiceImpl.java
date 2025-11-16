@@ -9,7 +9,6 @@ import com.ohdeerit.blog.repositories.MediaFileRepository;
 import org.springframework.beans.factory.annotation.Value;
 import com.ohdeerit.blog.models.entities.MediaFileEntity;
 import org.springframework.web.multipart.MultipartFile;
-import com.ohdeerit.blog.models.enums.ThumbnailMethod;
 import com.ohdeerit.blog.repositories.MediaRepository;
 import com.ohdeerit.blog.models.entities.MediaEntity;
 import com.ohdeerit.blog.config.ThumbnailConstants;

@@ -26,13 +26,13 @@ public class PostEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 255)
     private String title;
 
     @Column(nullable = false, unique = true)
     private String slug;
 
-    @Column(nullable = false, name = "short")
+    @Column(nullable = false, name = "short", length = 1000)
     private String shortDescription;
 
     @Column(nullable = false, columnDefinition = "TEXT")

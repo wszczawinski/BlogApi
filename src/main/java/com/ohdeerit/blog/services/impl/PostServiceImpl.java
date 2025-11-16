@@ -21,8 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.stream.Collectors;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.UUID;
 import java.util.List;
@@ -160,44 +160,56 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public PostDto updatePost(UUID id, UpdatePostDto updatePostDto, UUID userId) {
-        PostEntity existingPost = postRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Post with id " + id + " not found"));
+    public PostDto updatePost(final UpdatePostDto updatePost, final UUID userId) {
+        PostEntity existingPost = postRepository.findById(updatePost.id())
+                .orElseThrow(() -> new EntityNotFoundException("Post with id " + updatePost.id() + " not found"));
 
-        if (updatePostDto.title() != null) {
-            existingPost.setTitle(updatePostDto.title());
+        if (updatePost.title() != null) {
+            existingPost.setTitle(updatePost.title());
         }
 
-        if (updatePostDto.content() != null) {
-            existingPost.setContent(updatePostDto.content());
-            existingPost.setReadingTime(calculateReadTime(updatePostDto.content()));
+        if (updatePost.shortDescription() != null) {
+            existingPost.setShortDescription(updatePost.shortDescription());
         }
 
-        if (updatePostDto.categoryId() != null) {
-            CategoryEntity category = categoryService.getCategory(updatePostDto.categoryId());
+        if (updatePost.content() != null) {
+            existingPost.setContent(updatePost.content());
+            existingPost.setReadingTime(calculateReadTime(updatePost.content()));
+        }
+
+        if (updatePost.categoryId() != null) {
+            CategoryEntity category = categoryService.getCategory(updatePost.categoryId());
             existingPost.setCategory(category);
         }
 
-        if (updatePostDto.tagIds() != null) {
-            Set<TagEntity> tags = updatePostDto.tagIds().stream()
+        if (updatePost.tagIds() != null) {
+            Set<TagEntity> tags = updatePost.tagIds().stream()
                     .map(tagService::getTag)
                     .collect(Collectors.toSet());
             existingPost.getTags().clear();
             existingPost.getTags().addAll(tags);
         }
 
-        if (updatePostDto.status() != null) {
-            existingPost.setStatus(updatePostDto.status());
+        if (updatePost.status() != null) {
+            existingPost.setStatus(updatePost.status());
         }
 
-        if (updatePostDto.mediaId() != null) {
-            if (existingPost.getMedia() != null && !existingPost.getMedia().getId().equals(updatePostDto.mediaId())) {
+        if (updatePost.mediaId() != null) {
+            if (existingPost.getMedia() != null && !existingPost.getMedia().getId().equals(updatePost.mediaId())) {
                 postMediaRepository.deleteByPostId(existingPost.getId());
                 postMediaRepository.flush();
             }
 
-            final MediaEntity mediaEntity = mediaService.getMedia(updatePostDto.mediaId());
+            final MediaEntity mediaEntity = mediaService.getMedia(updatePost.mediaId());
             existingPost.setMedia(mediaEntity);
+        }
+
+        if (updatePost.thumbnailFile() != null) {
+            final var saveImageDto = new SaveImageDto(updatePost.thumbnailFile(), Paths.get(uploadDirectory),
+                    List.of(ThumbnailConstants.POST_THUMBNAIL));
+            final String thumbnailFileName = imageService.saveImage(saveImageDto);
+
+            existingPost.setThumbnail(thumbnailFileName);
         }
 
         final PostEntity updatedPost = postRepository.save(existingPost);

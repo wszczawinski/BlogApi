@@ -69,13 +69,12 @@ public class PostController {
         return new ResponseEntity<>(postDto, HttpStatus.CREATED);
     }
 
-    @PutMapping(path = "/{id}")
+    @PutMapping(consumes = "multipart/form-data")
     public ResponseEntity<PostDto> updatePost(
-            @PathVariable UUID id,
-            @RequestBody @NotNull @Valid UpdatePostRequest updatePostRequest,
-            @RequestAttribute UUID userId
+            @ModelAttribute @Valid @NotNull final UpdatePostRequest updatePostRequest,
+            @RequestAttribute final UUID userId
     ) {
-        final PostDto postDto = postService.updatePost(id, updatePostRequest.post(), userId);
+        final PostDto postDto = postService.updatePost(updatePostRequest.post(), userId);
 
         return ResponseEntity.ok(postDto);
     }

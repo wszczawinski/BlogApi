@@ -9,11 +9,20 @@ import java.util.Set;
 import java.util.UUID;
 
 public record CreatePostDto(
-        @Size(min = 10, max = 200, message = "Post title must be between {min} and {max} characters")
+        @NotBlank(message = "Post title is required")
+        @Size(
+                min = 10,
+                max = 255,
+                message = "Post title must be between {min} and {max} characters"
+        )
         String title,
 
         @NotBlank(message = "Post short description is required")
-        @Size(min = 10, max = 500, message = "Post short description must be between {min} and {max} characters")
+        @Size(
+                min = 10,
+                max = 1000,
+                message = "Post short description must be between {min} and {max} characters"
+        )
         String shortDescription,
 
         @NotBlank(message = "Post content is required")

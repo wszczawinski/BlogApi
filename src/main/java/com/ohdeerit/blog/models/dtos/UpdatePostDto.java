@@ -1,26 +1,48 @@
 package com.ohdeerit.blog.models.dtos;
 
+import org.springframework.web.multipart.MultipartFile;
 import com.ohdeerit.blog.models.enums.PostStatus;
 import jakarta.validation.constraints.*;
+import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
 
 import java.util.UUID;
 import java.util.Set;
 
 public record UpdatePostDto(
-        @Size(min = 10, max = 200, message = "Post title must be between {min} and {max} characters")
+
+        @NotNull(message = "Post ID is required")
+        UUID id,
+
+        @NotBlank(message = "Post title is required")
+        @Size(
+                min = 10,
+                max = 255,
+                message = "Post title must be between {min} and {max} characters"
+        )
         String title,
 
+        @NotBlank(message = "Post short description is required")
+        @Size(
+                min = 10,
+                max = 1000,
+                message = "Post short description must be between {min} and {max} characters"
+        )
+        String shortDescription,
+
+        @NotBlank(message = "Post content is required")
         @Size(min = 10, message = "Post content must be at least {min} characters")
         String content,
 
-        UUID categoryId,
+        @NotNull(message = "Category is required") UUID categoryId,
 
         @Size(max = 4, message = "You can only select up to {max} tags")
         Set<UUID> tagIds,
 
-        PostStatus status,
+        @NotNull(message = "Post status is required") PostStatus status,
 
-        @Positive(message = "Media ID must be a positive number")
-        Integer mediaId
+        @Positive(message = "Media ID must be a positive number") Integer mediaId,
+
+        @Valid @Nullable MultipartFile thumbnailFile
 ) {
 }
