@@ -3,8 +3,10 @@ package com.ohdeerit.blog.models.dtos;
 import org.springframework.web.multipart.MultipartFile;
 import com.ohdeerit.blog.models.enums.PostStatus;
 import jakarta.validation.constraints.*;
+import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -43,6 +45,14 @@ public record CreatePostDto(
 
         @Valid
         @NotNull(message = "Thumbnail is required")
-        MultipartFile thumbnailFile
+        MultipartFile thumbnailFile,
+
+        @Nullable
+        @Size(min = 1, max = 10, message = "You must upload between 1 and 10 files")
+        MultipartFile[] files,
+
+        @Nullable
+        @Size(min = 1, message = "At least one file URL is required")
+        List<String> fileUrls
 ) {
 }

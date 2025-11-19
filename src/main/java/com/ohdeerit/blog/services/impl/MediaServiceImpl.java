@@ -12,7 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.ohdeerit.blog.repositories.MediaRepository;
 import com.ohdeerit.blog.models.entities.MediaEntity;
 import com.ohdeerit.blog.config.ThumbnailConstants;
-import com.ohdeerit.blog.utils.FileOperationsUtil;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.data.domain.Slice;
@@ -40,9 +39,6 @@ public class MediaServiceImpl implements MediaService {
 
     @Value("${app.media.upload-dir}")
     private String uploadDirectory;
-
-    @Value("${app.media.max-file-size}")
-    private long maxFileSize;
 
     private static final DateTimeFormatter DIRECTORY_NAME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss");
 
@@ -86,8 +82,6 @@ public class MediaServiceImpl implements MediaService {
             mediaDirectoryPath = fileOperationsService.createMediaDirectory(uploadDirectory, mediaDirectory);
 
             for (MultipartFile file : files) {
-                FileOperationsUtil.validateFile(file, maxFileSize);
-
                 final String fileName = imageService.saveImage(
                         new SaveImageDto(file, mediaDirectoryPath, ThumbnailConstants.MEDIA_IMAGE_THUMBNAILS)
                 );

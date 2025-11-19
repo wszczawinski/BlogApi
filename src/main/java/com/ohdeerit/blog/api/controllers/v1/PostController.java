@@ -16,6 +16,7 @@ import org.springframework.data.domain.Slice;
 import com.ohdeerit.blog.models.dtos.PostDto;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import lombok.RequiredArgsConstructor;
 import jakarta.validation.Valid;
 
@@ -59,7 +60,7 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping(consumes = "multipart/form-data")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PostDto> createPost(
             @ModelAttribute @Valid @NotNull final CreatePostRequest createPostRequest,
             @RequestAttribute final UUID userId

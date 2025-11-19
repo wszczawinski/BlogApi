@@ -6,6 +6,7 @@ import jakarta.validation.constraints.*;
 import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.Set;
 
@@ -43,6 +44,14 @@ public record UpdatePostDto(
 
         @Positive(message = "Media ID must be a positive number") Integer mediaId,
 
-        @Valid @Nullable MultipartFile thumbnailFile
+        @Valid @Nullable MultipartFile thumbnailFile,
+
+        @Nullable
+        @Size(min = 1, max = 10, message = "You must upload between 1 and 10 files")
+        MultipartFile[] files,
+
+        @Nullable
+        @Size(min = 1, message = "At least one file URL is required")
+        List<String> fileUrls
 ) {
 }

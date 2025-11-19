@@ -4,10 +4,12 @@ import static com.ohdeerit.blog.utils.FileOperationsUtil.*;
 import static com.ohdeerit.blog.utils.ThumbnailUtil.*;
 
 import org.springframework.validation.annotation.Validated;
+import org.springframework.beans.factory.annotation.Value;
 import com.ohdeerit.blog.services.interfaces.ImageService;
 import org.springframework.web.multipart.MultipartFile;
 import com.ohdeerit.blog.models.enums.ThumbnailMethod;
 import net.coobird.thumbnailator.geometry.Positions;
+import com.ohdeerit.blog.utils.FileOperationsUtil;
 import com.ohdeerit.blog.models.dtos.ThumbnailDto;
 import com.ohdeerit.blog.models.dtos.SaveImageDto;
 import org.springframework.stereotype.Service;
@@ -28,11 +30,18 @@ import java.awt.*;
 @Validated
 public class ImageServiceImpl implements ImageService {
 
+    @Value("${app.media.max-file-size}")
+    private long maxFileSize;
+
     @Override
     public String saveImage(final SaveImageDto saveImageDto) {
         try {
             final MultipartFile originalFile = saveImageDto.originalFile();
             final Path uploadDirectoryPath = saveImageDto.uploadDirectory();
+
+            final byte[] originalFileBytes = originalFile.getBytes();
+
+            FileOperationsUtil.validateFile(originalFile, maxFileSize);
 
             final String originalFileName = originalFile.getOriginalFilename();
             if (Objects.isNull(originalFileName)) {
@@ -41,35 +50,37 @@ public class ImageServiceImpl implements ImageService {
 
             final String extension = getFileExtension(originalFileName);
 
-            for (ThumbnailDto thumbnailDto : saveImageDto.thumbnails()) {
-                final String hashedFileName = generateImageMd5Hash(originalFileName, thumbnailDto);
-                final BufferedImage thumbnail = createThumbnailImage(originalFile, thumbnailDto);
+            if (!Objects.isNull(saveImageDto.thumbnails())) {
+                for (ThumbnailDto thumbnailDto : saveImageDto.thumbnails()) {
+                    final String hashedFileName = generateImageMd5Hash(originalFileName, thumbnailDto);
+                    final BufferedImage thumbnail = createThumbnailImage(originalFileBytes, thumbnailDto);
 
-                final String fullHashedFileName = hashedFileName + "." + extension;
-                final Path thumbnailPath = uploadDirectoryPath.resolve("thumbnail").resolve(fullHashedFileName);
+                    final String fullHashedFileName = hashedFileName + "." + extension;
+                    final Path thumbnailPath = uploadDirectoryPath.resolve("thumbnail").resolve(fullHashedFileName);
 
-                ImageIO.write(thumbnail, extension, thumbnailPath.toFile());
+                    ImageIO.write(thumbnail, extension, thumbnailPath.toFile());
 
-                log.info("[ThumbnailServiceImpl.createThumbnail] Created thumbnail: {} -> {}",
-                        originalFileName, fullHashedFileName);
+                    log.info("[ImageServiceImpl.createThumbnail] Created thumbnail: {} -> {}",
+                            originalFileName, fullHashedFileName);
+                }
             }
 
             final Path originalPath = uploadDirectoryPath.resolve(originalFileName);
 
-            Files.write(originalPath, originalFile.getBytes());
+            Files.write(originalPath, originalFileBytes);
 
-            log.info("[ThumbnailServiceImpl.createThumbnail] Saved original file: {}", originalFileName);
+            log.info("[ImageServiceImpl.createThumbnail] Saved original file: {}", originalFileName);
 
             return originalFileName;
         } catch (Exception e) {
-            log.error("[ThumbnailServiceImpl.createThumbnail] Failed to create thumbnail for file: {}", saveImageDto.originalFile().getOriginalFilename(), e);
+            log.error("[ImageServiceImpl.createThumbnail] Failed to create thumbnail for file: {}", saveImageDto.originalFile().getOriginalFilename(), e);
             throw new RuntimeException("Failed to create thumbnail", e);
         }
     }
 
-    private BufferedImage createThumbnailImage(final MultipartFile file, final ThumbnailDto thumbnailDto) throws IOException {
+    private BufferedImage createThumbnailImage(final byte[] fileBytes, final ThumbnailDto thumbnailDto) throws IOException {
 
-        final BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(file.getBytes()));
+        final BufferedImage originalImage = ImageIO.read(new ByteArrayInputStream(fileBytes));
         final int width = thumbnailDto.width();
         final int height = thumbnailDto.height();
         final ThumbnailMethod method = thumbnailDto.method();

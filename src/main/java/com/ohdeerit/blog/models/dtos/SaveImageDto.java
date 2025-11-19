@@ -2,6 +2,7 @@ package com.ohdeerit.blog.models.dtos;
 
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.constraints.*;
+import jakarta.annotation.Nullable;
 import jakarta.validation.Valid;
 
 import java.nio.file.Path;
@@ -15,8 +16,7 @@ public record SaveImageDto(
     @NotNull 
     Path uploadDirectory,
 
-    @NotNull
-    @NotEmpty
+    @Nullable
     List<ThumbnailDto> thumbnails
 ) {
 }
