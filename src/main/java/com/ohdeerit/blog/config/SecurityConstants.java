@@ -8,6 +8,4 @@ public final class SecurityConstants {
     }
 
     public static final String JWT_COOKIE_NAME = "jwt";
-    public static final long SESSION_DURATION_SECONDS = 86400L; // 24 hours
-    public static final Duration SESSION_DURATION = Duration.ofSeconds(SESSION_DURATION_SECONDS);
 }

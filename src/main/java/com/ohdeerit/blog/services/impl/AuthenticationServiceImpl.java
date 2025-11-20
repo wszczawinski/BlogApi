@@ -3,17 +3,20 @@ package com.ohdeerit.blog.services.impl;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import com.ohdeerit.blog.services.interfaces.AuthenticationService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.beans.factory.annotation.Value;
-import com.ohdeerit.blog.services.interfaces.AuthenticationService;
 import org.springframework.stereotype.Service;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
+import java.time.Duration;
 import java.security.Key;
 import java.util.HashMap;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 
@@ -28,7 +31,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private final Long jwtExpiryMs = 86_400_000L;
+    @Value("${jwt.session-duration-seconds}")
+    private Long jwtSessionDurationSeconds;
 
     @Override
     public UserDetails authenticate(String email, String password) {
@@ -49,29 +53,34 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiryMs))
+                .setExpiration(new Date(System.currentTimeMillis() + Duration.ofSeconds(jwtSessionDurationSeconds).toMillis()))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     @Override
     public UserDetails validateToken(String token) {
-        String username = extractUsername(token);
-
+        Claims claims = extractAllClaims(token);
+        
+        // Verify token is not expired
+        if (claims.getExpiration().before(new Date())) {
+            throw new io.jsonwebtoken.ExpiredJwtException(null, claims, "Token expired");
+        }
+        
+        String username = claims.getSubject();
         return userDetailsService.loadUserByUsername(username);
     }
 
     private Key getSigningKey() {
-        byte[] keyBytes = secretKey.getBytes();
+        byte[] keyBytes = Base64.getDecoder().decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    private String extractUsername(String token) {
+    private Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .getBody();
     }
 }

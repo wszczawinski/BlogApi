@@ -31,6 +31,8 @@ public class SecurityConfig {
     @Value("${cors.allowed-origins}")
     private String[] allowedOrigins;
 
+    @Value("${jwt.session-duration-seconds}")
+    private Long jwtSessionDurationSeconds;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(AuthenticationService authenticationService) {
@@ -100,7 +102,7 @@ public class SecurityConfig {
         ));
         configuration.setExposedHeaders(Collections.emptyList());
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(SecurityConstants.SESSION_DURATION_SECONDS);
+        configuration.setMaxAge(3600L); // 1h
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
