@@ -7,14 +7,13 @@ import com.ohdeerit.blog.services.interfaces.AuthenticationService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
+import javax.crypto.SecretKey;
 import java.time.Duration;
-import java.security.Key;
 import java.util.HashMap;
 import java.util.Base64;
 import java.util.Date;
@@ -50,11 +49,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Map<String, Object> claims = new HashMap<>();
 
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + Duration.ofSeconds(jwtSessionDurationSeconds).toMillis()))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .claims(claims)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + Duration.ofSeconds(jwtSessionDurationSeconds).toMillis()))
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
 
@@ -71,16 +70,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return userDetailsService.loadUserByUsername(username);
     }
 
-    private Key getSigningKey() {
+    private SecretKey getSigningKey() {
         byte[] keyBytes = Base64.getDecoder().decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }
