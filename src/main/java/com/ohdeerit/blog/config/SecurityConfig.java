@@ -21,11 +21,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import com.ohdeerit.blog.repositories.UserRepository;
 import org.springframework.context.annotation.Bean;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpMethod;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.Collections;
 
+@Slf4j
 @Configuration
 public class SecurityConfig {
     @Value("${cors.allowed-origins}")
@@ -73,6 +76,13 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(exceptions -> exceptions
                         .authenticationEntryPoint((request, response, authException) -> {
+                            final String ip = getClientIp(request);
+                            final String path = request.getRequestURI();
+                            final String method = request.getMethod();
+
+                            log.warn("AUTH_REQUIRED | method={} | path={} | ip={} | reason={}",
+                                    method, path, ip, authException.getMessage());
+
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                             response.setContentType("application/json;charset=UTF-8");
                             response.getWriter().write("{\"error\": \"Unauthorized\"}");
@@ -127,5 +137,19 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    private String getClientIp(final HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip == null || ip.isEmpty()) {
+            ip = request.getHeader("X-Real-IP");
+        }
+        if (ip == null || ip.isEmpty()) {
+            ip = request.getRemoteAddr();
+        }
+        if (ip != null && ip.contains(",")) {
+            ip = ip.split(",")[0].trim();
+        }
+        return ip;
     }
 }

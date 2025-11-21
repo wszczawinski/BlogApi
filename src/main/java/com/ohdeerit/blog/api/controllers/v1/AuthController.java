@@ -42,7 +42,6 @@ public class AuthController {
 
             final String token = authenticationService.generateToken(userDetails);
 
-            // Log successful login
             log.info("AUTH_SUCCESS | user={} | ip={}", 
                     userDetails.getUsername(), getClientIp(request));
 
@@ -62,7 +61,6 @@ public class AuthController {
                     .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                     .body(authResponse);
         } catch (Exception e) {
-            // Log failed login
             log.warn("AUTH_FAILURE | user={} | ip={} | reason={}", 
                     loginRequest.email(), getClientIp(request), e.getMessage());
             throw e;

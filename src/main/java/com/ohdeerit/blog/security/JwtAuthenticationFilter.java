@@ -35,24 +35,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             authenticateRequest(request);
         } catch (ExpiredJwtException e) {
-            log.warn("TOKEN_EXPIRED | ip={} | path={}", getClientIp(request), request.getRequestURI());
             clearAuthenticationContext();
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("{\"error\": \"Token expired\"}");
-            return;
         } catch (JwtException e) {
             log.warn("TOKEN_INVALID | ip={} | path={}", getClientIp(request), request.getRequestURI());
             clearAuthenticationContext();
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("{\"error\": \"Invalid token\"}");
-            return;
         } catch (Exception e) {
-            log.error("AUTH_ERROR | ip={} | path={} | error={}", 
-                    getClientIp(request), request.getRequestURI(), e.getMessage());
+            log.error("AUTH_ERROR | ip={} | path={} | error={}", getClientIp(request), request.getRequestURI(), e.getMessage());
             clearAuthenticationContext();
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            response.getWriter().write("{\"error\": \"Internal authentication error\"}");
-            return;
         }
 
         addSecurityHeaders(response);

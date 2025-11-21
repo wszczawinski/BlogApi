@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
@@ -19,6 +20,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -38,9 +40,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(email, password);
 
-        var authentication = authenticationManager.authenticate(authToken);
-
-        return (UserDetails) authentication.getPrincipal();
+        try {
+            var authentication = authenticationManager.authenticate(authToken);
+            log.info("LOGIN_SUCCESS | email={}", email);
+            return (UserDetails) authentication.getPrincipal();
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            log.warn("LOGIN_FAILED | email={} | reason={}", email, e.getMessage());
+            throw e;
+        }
     }
 
 
