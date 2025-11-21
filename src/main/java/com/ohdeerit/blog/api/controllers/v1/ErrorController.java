@@ -23,8 +23,8 @@ import java.util.Map;
 public class ErrorController {
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> handleException(Exception ex) {
-        log.error("Unexpected exception occurred", ex);
+    public ResponseEntity<ApiErrorResponse> handleException(Exception ex, jakarta.servlet.http.HttpServletRequest request) {
+        log.error("Unexpected exception occurred | method={} | path={}", request.getMethod(), request.getRequestURI(), ex);
 
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -35,8 +35,8 @@ public class ErrorController {
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
-        log.warn("Validation error: {}", ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex, jakarta.servlet.http.HttpServletRequest request) {
+        log.warn("Validation error | method={} | path={} | message={}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -47,8 +47,8 @@ public class ErrorController {
     }
 
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ApiErrorResponse> handleIllegalStateException(IllegalStateException ex) {
-        log.error("Processing error: {}", ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleIllegalStateException(IllegalStateException ex, jakarta.servlet.http.HttpServletRequest request) {
+        log.error("Processing error | method={} | path={} | message={}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .status(HttpStatus.CONFLICT.value())
@@ -59,8 +59,8 @@ public class ErrorController {
     }
 
     @ExceptionHandler(SecurityException.class)
-    public ResponseEntity<ApiErrorResponse> handleSecurityException(SecurityException ex) {
-        log.warn("Security violation: {}", ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleSecurityException(SecurityException ex, jakarta.servlet.http.HttpServletRequest request) {
+        log.warn("Security violation | method={} | path={} | message={}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .status(HttpStatus.FORBIDDEN.value())
@@ -71,8 +71,8 @@ public class ErrorController {
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiErrorResponse> handleBadCredentialsException(BadCredentialsException ex) {
-        log.warn("Authentication failed: {}", ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleBadCredentialsException(BadCredentialsException ex, jakarta.servlet.http.HttpServletRequest request) {
+        log.warn("Authentication failed | method={} | path={} | message={}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
@@ -83,8 +83,8 @@ public class ErrorController {
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ApiErrorResponse> handleEntityNotFoundException(EntityNotFoundException ex) {
-        log.warn("Entity not found: {}", ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleEntityNotFoundException(EntityNotFoundException ex, jakarta.servlet.http.HttpServletRequest request) {
+        log.warn("Entity not found | method={} | path={} | message={}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .status(HttpStatus.NOT_FOUND.value())
@@ -95,7 +95,7 @@ public class ErrorController {
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex, jakarta.servlet.http.HttpServletRequest request) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
@@ -106,7 +106,7 @@ public class ErrorController {
         String message = errors.isEmpty() ? "Validation failed" :
                 String.format("Validation failed: %s", errors.toString());
 
-        log.warn("Validation failed: {}", errors);
+        log.warn("Validation failed | method={} | path={} | errors={}", request.getMethod(), request.getRequestURI(), errors);
 
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())
@@ -117,8 +117,8 @@ public class ErrorController {
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ResponseEntity<ApiErrorResponse> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex) {
-        log.warn("File upload size exceeded: {}", ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex, jakarta.servlet.http.HttpServletRequest request) {
+        log.warn("File upload size exceeded | method={} | path={} | message={}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
@@ -129,8 +129,8 @@ public class ErrorController {
     }
 
     @ExceptionHandler(MultipartException.class)
-    public ResponseEntity<ApiErrorResponse> handleMultipartException(MultipartException ex) {
-        log.warn("Invalid multipart request: {}", ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleMultipartException(MultipartException ex, jakarta.servlet.http.HttpServletRequest request) {
+        log.warn("Invalid multipart request | method={} | path={} | message={}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .status(HttpStatus.BAD_REQUEST.value())

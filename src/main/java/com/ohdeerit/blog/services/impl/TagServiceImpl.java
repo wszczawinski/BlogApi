@@ -1,19 +1,21 @@
 package com.ohdeerit.blog.services.impl;
 
+import com.ohdeerit.blog.services.mappers.TagServiceMapper;
+import com.ohdeerit.blog.services.interfaces.TagService;
 import com.ohdeerit.blog.repositories.TagRepository;
 import com.ohdeerit.blog.models.entities.TagEntity;
 import jakarta.persistence.EntityNotFoundException;
 import com.ohdeerit.blog.models.dtos.CreateTagDto;
-import com.ohdeerit.blog.services.mappers.TagServiceMapper;
 import org.springframework.stereotype.Service;
-import com.ohdeerit.blog.services.interfaces.TagService;
 import com.ohdeerit.blog.models.dtos.TagDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.stream.Collectors;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TagServiceImpl implements TagService {
@@ -69,6 +71,7 @@ public class TagServiceImpl implements TagService {
 
         if (!tagsToCreate.isEmpty()) {
             savedTags = tagRepository.saveAll(tagsToCreate);
+            log.info("[TagServiceImpl.createTags] Created {} new tags", savedTags.size());
         }
 
         savedTags.addAll(existingTags);
@@ -84,6 +87,7 @@ public class TagServiceImpl implements TagService {
                 throw new IllegalStateException("Tag with id " + id + " has posts");
             }
             tagRepository.deleteById(id);
+            log.info("[TagServiceImpl.deleteTag] Deleted tag with id: {}", id);
         });
     }
 }

@@ -44,14 +44,13 @@ public class UserEntity {
         UserEntity that = (UserEntity) o;
         return Objects.equals(id, that.id)
                 && Objects.equals(email, that.email)
-                && Objects.equals(password, that.password)
                 && Objects.equals(name, that.name)
                 && Objects.equals(createdAt, that.createdAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, email, password, name, createdAt);
+        return Objects.hash(id, email, name, createdAt);
     }
 
     @PrePersist
