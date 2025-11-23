@@ -10,11 +10,13 @@ import com.ohdeerit.blog.models.dtos.CategoryDto;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
@@ -47,6 +49,8 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         final CategoryEntity createdCategory = categoryRepository.save(category);
+        
+        log.info("[CategoryServiceImpl.createCategory] Created category: {}", createdCategory.getName());
 
         return categoryMapper.map(createdCategory);
     }
@@ -65,5 +69,6 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         categoryRepository.deleteById(id);
+        log.info("[CategoryServiceImpl.deleteCategory] Deleted category with id: {}", id);
     }
 }

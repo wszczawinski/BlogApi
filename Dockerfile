@@ -26,7 +26,8 @@ RUN mkdir -p /app/logs /app/resources && \
     chown -R www-data:www-data /app/resources && \
     chmod -R 755 /app/resources
 
-ENV SERVER_PORT=${SERVER_PORT} \
+ENV TZ=Europe/Warsaw \
+    SERVER_PORT=${SERVER_PORT} \
     SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL} \
     SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME} \
     SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD} \
@@ -39,6 +40,8 @@ ENV SERVER_PORT=${SERVER_PORT} \
     APP_POST_THUMBNAIL_UPLOAD_DIR=${APP_POST_THUMBNAIL_UPLOAD_DIR} \
     APP_POST_CONTENT_FILES_UPLOAD_DIR=${APP_POST_CONTENT_FILES_UPLOAD_DIR} \
     APP_PAGINATION_POSTS_PER_PAGE=${APP_PAGINATION_POSTS_PER_PAGE}
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 EXPOSE 80
 ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

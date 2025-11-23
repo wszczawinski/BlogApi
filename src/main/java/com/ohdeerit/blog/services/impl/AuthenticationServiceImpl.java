@@ -3,20 +3,24 @@ package com.ohdeerit.blog.services.impl;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import com.ohdeerit.blog.services.interfaces.AuthenticationService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.beans.factory.annotation.Value;
-import com.ohdeerit.blog.services.interfaces.AuthenticationService;
 import org.springframework.stereotype.Service;
-import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -28,16 +32,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    private final Long jwtExpiryMs = 86_400_000L;
+    @Value("${jwt.session-duration-seconds}")
+    private Long jwtSessionDurationSeconds;
 
     @Override
     public UserDetails authenticate(String email, String password) {
         UsernamePasswordAuthenticationToken authToken =
                 new UsernamePasswordAuthenticationToken(email, password);
 
-        var authentication = authenticationManager.authenticate(authToken);
-
-        return (UserDetails) authentication.getPrincipal();
+        try {
+            var authentication = authenticationManager.authenticate(authToken);
+            log.info("LOGIN_SUCCESS | email={}", email);
+            return (UserDetails) authentication.getPrincipal();
+        } catch (org.springframework.security.core.AuthenticationException e) {
+            log.warn("LOGIN_FAILED | email={} | reason={}", email, e.getMessage());
+            throw e;
+        }
     }
 
 
@@ -46,32 +56,37 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Map<String, Object> claims = new HashMap<>();
 
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiryMs))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .claims(claims)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + Duration.ofSeconds(jwtSessionDurationSeconds).toMillis()))
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
 
     @Override
     public UserDetails validateToken(String token) {
-        String username = extractUsername(token);
-
+        Claims claims = extractAllClaims(token);
+        
+        // Verify token is not expired
+        if (claims.getExpiration().before(new Date())) {
+            throw new io.jsonwebtoken.ExpiredJwtException(null, claims, "Token expired");
+        }
+        
+        String username = claims.getSubject();
         return userDetailsService.loadUserByUsername(username);
     }
 
-    private Key getSigningKey() {
-        byte[] keyBytes = secretKey.getBytes();
+    private SecretKey getSigningKey() {
+        byte[] keyBytes = Base64.getDecoder().decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    private String extractUsername(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 }

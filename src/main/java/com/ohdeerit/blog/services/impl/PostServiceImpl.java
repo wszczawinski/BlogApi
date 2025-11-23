@@ -214,8 +214,7 @@ public class PostServiceImpl implements PostService {
             for (MultipartFile file : updatePost.files()) {
                 final var saveContentFilesDto = new SaveImageDto(file, Paths.get(filesUploadDirectory), null);
                 final String contentFileName = imageService.saveImage(saveContentFilesDto);
-                log.info("[PostService.createPost] Post content file '{}'", contentFileName);
-
+                log.info("[PostService.updatePost] Post content file '{}'", contentFileName);
                 final String localFileUrl = fileUrlMap.get(contentFileName);
                 if (localFileUrl != null) {
                     String serverUrl = "/resources/post_content/" + contentFileName;
@@ -267,6 +266,8 @@ public class PostServiceImpl implements PostService {
         }
 
         final PostEntity updatedPost = postRepository.save(existingPost);
+
+        log.info("[PostService.updatePost] Post '{}': {}", updatedPost.getId(), updatedPost.getTitle());
         return postMapper.map(updatedPost);
     }
 
