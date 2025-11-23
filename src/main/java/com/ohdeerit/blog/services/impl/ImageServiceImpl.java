@@ -16,8 +16,10 @@ import org.springframework.stereotype.Service;
 import net.coobird.thumbnailator.Thumbnails;
 import lombok.extern.slf4j.Slf4j;
 
+import java.time.format.DateTimeFormatter;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.time.LocalDateTime;
 import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -43,16 +45,19 @@ public class ImageServiceImpl implements ImageService {
 
             FileOperationsUtil.validateFile(originalFile, maxFileSize);
 
-            final String originalFileName = originalFile.getOriginalFilename();
-            if (Objects.isNull(originalFileName)) {
-                throw new IllegalArgumentException("Original filename cannot be null");
-            }
+            String filename = originalFile.getOriginalFilename();
 
-            final String extension = getFileExtension(originalFileName);
+            final String extension = getFileExtension(filename);
+
+            if (saveImageDto.uniqueFilename()) {
+                final String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+
+                filename = getFileNameWithoutExtension(filename) + "_" + timestamp + "." + extension;
+            }
 
             if (!Objects.isNull(saveImageDto.thumbnails())) {
                 for (ThumbnailDto thumbnailDto : saveImageDto.thumbnails()) {
-                    final String hashedFileName = generateImageMd5Hash(originalFileName, thumbnailDto);
+                    final String hashedFileName = generateImageMd5Hash(filename, thumbnailDto);
                     final BufferedImage thumbnail = createThumbnailImage(originalFileBytes, thumbnailDto);
 
                     final String fullHashedFileName = hashedFileName + "." + extension;
@@ -61,19 +66,21 @@ public class ImageServiceImpl implements ImageService {
                     ImageIO.write(thumbnail, extension, thumbnailPath.toFile());
 
                     log.info("[ImageServiceImpl.createThumbnail] Created thumbnail: {} -> {}",
-                            originalFileName, fullHashedFileName);
+                            filename, fullHashedFileName);
                 }
             }
 
-            final Path originalPath = uploadDirectoryPath.resolve(originalFileName);
+            final Path originalPath = uploadDirectoryPath.resolve(filename);
 
             Files.write(originalPath, originalFileBytes);
 
-            log.info("[ImageServiceImpl.createThumbnail] Saved original file: {}", originalFileName);
+            log.info("[ImageServiceImpl.createThumbnail] Saved original file: {}", filename);
 
-            return originalFileName;
+            return filename;
         } catch (Exception e) {
-            log.error("[ImageServiceImpl.createThumbnail] Failed to create thumbnail for file: {}", saveImageDto.originalFile().getOriginalFilename(), e);
+            log.error("[ImageServiceImpl.createThumbnail] Failed to create thumbnail for file: {}",
+                    saveImageDto.originalFile().getOriginalFilename(), e);
+
             throw new RuntimeException("Failed to create thumbnail", e);
         }
     }

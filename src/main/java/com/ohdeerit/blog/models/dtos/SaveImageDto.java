@@ -17,6 +17,8 @@ public record SaveImageDto(
     Path uploadDirectory,
 
     @Nullable
-    List<ThumbnailDto> thumbnails
+    List<ThumbnailDto> thumbnails,
+
+    boolean uniqueFilename
 ) {
 }

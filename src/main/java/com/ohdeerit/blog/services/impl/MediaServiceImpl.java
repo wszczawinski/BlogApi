@@ -83,7 +83,7 @@ public class MediaServiceImpl implements MediaService {
 
             for (MultipartFile file : files) {
                 final String fileName = imageService.saveImage(
-                        new SaveImageDto(file, mediaDirectoryPath, ThumbnailConstants.MEDIA_IMAGE_THUMBNAILS)
+                        new SaveImageDto(file, mediaDirectoryPath, ThumbnailConstants.MEDIA_IMAGE_THUMBNAILS, false)
                 );
 
                 processedFiles.add(new ProcessedImageInfoDto(fileName, (int) file.getSize()));
