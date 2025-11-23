@@ -131,7 +131,7 @@ public class PostServiceImpl implements PostService {
         final UserEntity userEntity = userService.getUser(userId);
 
         final var saveThumbnailDto = new SaveImageDto(post.thumbnailFile(), Paths.get(thumbnailUploadDirectory),
-                List.of(ThumbnailConstants.POST_THUMBNAIL));
+                List.of(ThumbnailConstants.POST_THUMBNAIL), true);
         final String thumbnailFileName = imageService.saveImage(saveThumbnailDto);
 
         String content = post.content();
@@ -142,7 +142,7 @@ public class PostServiceImpl implements PostService {
             Map<String, String> urlReplacements = new HashMap<>();
 
             for (MultipartFile file : post.files()) {
-                final var saveContentFilesDto = new SaveImageDto(file, Paths.get(filesUploadDirectory), null);
+                final var saveContentFilesDto = new SaveImageDto(file, Paths.get(filesUploadDirectory), null, true);
                 final String contentFileName = imageService.saveImage(saveContentFilesDto);
                 log.info("[PostService.createPost] Post content file '{}'", contentFileName);
 
@@ -198,7 +198,7 @@ public class PostServiceImpl implements PostService {
 
         if (updatePost.thumbnailFile() != null) {
             final var saveImageDto = new SaveImageDto(updatePost.thumbnailFile(), Paths.get(thumbnailUploadDirectory),
-                    List.of(ThumbnailConstants.POST_THUMBNAIL));
+                    List.of(ThumbnailConstants.POST_THUMBNAIL), true);
             final String thumbnailFileName = imageService.saveImage(saveImageDto);
 
             existingPost.setThumbnail(thumbnailFileName);
@@ -212,7 +212,7 @@ public class PostServiceImpl implements PostService {
             Map<String, String> urlReplacements = new HashMap<>();
 
             for (MultipartFile file : updatePost.files()) {
-                final var saveContentFilesDto = new SaveImageDto(file, Paths.get(filesUploadDirectory), null);
+                final var saveContentFilesDto = new SaveImageDto(file, Paths.get(filesUploadDirectory), null, true);
                 final String contentFileName = imageService.saveImage(saveContentFilesDto);
                 log.info("[PostService.updatePost] Post content file '{}'", contentFileName);
                 final String localFileUrl = fileUrlMap.get(contentFileName);
