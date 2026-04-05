@@ -13,11 +13,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Java 21
+      - name: Set up Java 25
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
 
       - name: Cache Maven Dependencies
         uses: actions/cache@v4
@@ -41,7 +41,7 @@ jobs:
       - name: Set up Node.js (for Snyk CLI)
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
 
       - name: Install Snyk CLI
         run: npm install -g snyk@latest
