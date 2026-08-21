@@ -1,5 +1,5 @@
 # Build stage
-FROM eclipse-temurin:21-jdk-jammy as builder
+FROM eclipse-temurin:25-jdk-jammy AS builder
 WORKDIR /app
 COPY mvnw .
 COPY .mvn .mvn
@@ -8,7 +8,7 @@ COPY src src
 RUN ./mvnw clean package -DskipTests
 
 # Runtime stage
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 
 # Install nginx and supervisor
 RUN apt-get update && apt-get install -y nginx supervisor && \

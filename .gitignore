@@ -4,7 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 data
-resources
+resources/media
+resources/post
+resources/post_content
+app
 logs
 .env
 .DS_Store

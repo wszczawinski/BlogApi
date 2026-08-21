@@ -2,7 +2,7 @@ name: Build and Security Checks
 
 on:
   pull_request:
-    branches: [master]
+    branches: [master, develop]
 
 jobs:
   build-check:
@@ -13,11 +13,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Java 21
+      - name: Set up Java 25
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
 
       - name: Cache Maven Dependencies
         uses: actions/cache@v4
@@ -26,8 +26,8 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      - name: Build Project (Maven)
-        run: mvn clean package --batch-mode --no-transfer-progress
+      - name: Build and Test (Maven)
+        run: mvn clean verify --batch-mode --no-transfer-progress
 
   security-check:
     name: 🔐 Security Check (Snyk + SAST)
@@ -41,7 +41,7 @@ jobs:
       - name: Set up Node.js (for Snyk CLI)
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
 
       - name: Install Snyk CLI
         run: npm install -g snyk@latest
